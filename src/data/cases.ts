@@ -17,6 +17,9 @@ export interface MarketingCase {
   options: CaseOption[];
   expertExplanation: string;
   marketingLesson: string;
+  company?: string;
+  explanation?: string;
+  keyTakeaway?: string;
 }
 
 export const marketingCases: MarketingCase[] = [

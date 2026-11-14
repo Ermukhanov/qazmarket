@@ -1,166 +1,152 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Sun, Moon, Sparkles, User as UserIcon } from "lucide-react";
 import { useApp } from "@/store/app-context";
-import { getT } from "@/lib/i18n";
-import { calculateLevel } from "@/lib/utils";
-import {
-  Sun,
-  Moon,
-  Flame,
-  Award,
-  Globe,
-  Bell,
-  Menu,
-  X,
-  User as UserIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { translations } from "@/lib/i18n";
 
-export function Header({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
-  const { lang, setLang, theme, setTheme, progress, user } = useApp();
-  const t = getT(lang);
-  const { level, currentXp, nextLevelXp } = calculateLevel(progress.xp);
-  const xpPercent = Math.min(100, Math.round((currentXp / Math.max(1, nextLevelXp)) * 100));
+export function Header() {
+  const { lang, theme, setLang, setTheme, user, logout } = useApp();
+  const t = translations[lang] || translations.kk;
+  const pathname = usePathname();
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case "/":
+        return user ? t.nav.dashboard : "Басты бет";
+      case "/landing":
+        return "Платформа туралы";
+      case "/bilim":
+        return t.nav.bilim;
+      case "/studio":
+      case "/copywriter":
+        return t.nav.studio;
+      case "/brand":
+        return t.nav.brand;
+      case "/smm":
+      case "/jarname":
+        return t.nav.smm;
+      case "/seo":
+        return t.nav.seo;
+      case "/game":
+      case "/terminder":
+      case "/test":
+      case "/cases":
+        return t.nav.game;
+      case "/portfolio":
+        return t.nav.portfolio;
+      case "/achievements":
+        return t.nav.achievements;
+      case "/lesson-plans":
+        return t.nav.lessonPlans;
+      case "/methodology":
+        return t.nav.methodology;
+      case "/teacher":
+        return t.nav.teacher;
+      case "/login":
+        return t.auth.loginTitle;
+      default:
+        return t.appName;
+    }
+  };
 
   return (
     <header
-      className="sticky top-0 z-30 h-16 border-b transition-colors duration-200 px-4 md:px-6 flex items-center justify-between"
+      className="h-[72px] shrink-0 border-b px-4 md:px-8 flex items-center justify-between transition-colors duration-200 z-30 sticky top-0 backdrop-blur-md"
       style={{
-        background: "var(--card)",
+        background: "var(--header-bg)",
         borderColor: "var(--border-color)",
       }}
     >
-      {/* Left side: Mobile menu toggle + Logo/Greeting */}
-      <div className="flex items-center gap-3">
-        {onMobileMenuToggle && (
-          <button
-            onClick={onMobileMenuToggle}
-            className="md:hidden p-2 rounded-xl hover:bg-[var(--muted)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="Мәзірді ашу"
-          >
-            <Menu className="w-5 h-5" style={{ color: "var(--fg)" }} />
-          </button>
-        )}
-        <div className="flex items-center gap-2">
-          <span className="hidden sm:inline text-xs font-semibold px-2 py-0.5 rounded-full"
-            style={{
-              background: "color-mix(in srgb, var(--primary) 15%, transparent)",
-              color: "var(--primary)",
-            }}
-          >
-            QAZMARKET
-          </span>
-          <span className="text-xs font-medium truncate max-w-[200px] md:max-w-none" style={{ color: "var(--muted-fg)" }}>
-            {user ? `${t.dashboard.greeting}, ${user.name.split(" ")[0]}!` : t.slogan}
+      {/* Left: Mobile Logo & Desktop Page Title */}
+      <div className="flex items-center gap-3 min-w-0">
+        <Link href="/" className="md:hidden flex items-center gap-2 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+            QM
+          </div>
+        </Link>
+
+        <div className="flex items-center gap-2.5 truncate">
+          <h2 className="text-sm md:text-base font-bold text-[var(--fg)] truncate">
+            {getPageTitle()}
+          </h2>
+          <span className="hidden xl:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">
+            <Sparkles className="w-3 h-3" />
+            10-сынып
           </span>
         </div>
       </div>
 
-      {/* Right side controls */}
-      <div className="flex items-center gap-2 md:gap-3">
-        {/* Streak pill */}
-        <div
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all"
-          style={{
-            borderColor: "color-mix(in srgb, var(--warning) 30%, transparent)",
-            background: "color-mix(in srgb, var(--warning) 10%, transparent)",
-            color: "var(--warning)",
-          }}
-          title={`${progress.streak} күн қатарынан оқу белсенділігі`}
-        >
-          <Flame className="w-4 h-4 fill-current animate-pulse" />
-          <span>{progress.streak}</span>
-          <span className="hidden sm:inline font-normal text-[11px]">күн</span>
-        </div>
-
-        {/* Level & XP Badge */}
-        <div
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium"
-          style={{
-            borderColor: "var(--border-color)",
-            background: "var(--muted)",
-          }}
-        >
-          <Award className="w-4 h-4 text-[var(--primary)]" />
-          <div className="flex flex-col text-left">
-            <span className="text-[10px] font-bold" style={{ color: "var(--primary)" }}>
-              {level}-деңгей
-            </span>
-            <div className="w-16 h-1.5 rounded-full overflow-hidden bg-[var(--border-color)]">
-              <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${xpPercent}%`,
-                  background: "var(--gradient-primary)",
-                }}
-              />
-            </div>
-          </div>
-          <span className="text-[11px] font-bold" style={{ color: "var(--fg)" }}>
-            {progress.xp} XP
-          </span>
-        </div>
-
-        {/* Language switch */}
+      {/* Right Controls: Stats, Lang, Theme, User */}
+      <div className="flex items-center gap-2.5 md:gap-4 shrink-0">
+        {/* Language Switch */}
         <button
           onClick={() => setLang(lang === "kk" ? "ru" : "kk")}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-colors hover:bg-[var(--muted)] min-h-[44px]"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all hover:border-purple-500 hover:text-purple-400"
           style={{
+            background: "var(--card)",
             borderColor: "var(--border-color)",
             color: "var(--fg)",
           }}
-          title="Тілді ауыстыру / Сменить язык"
+          title={lang === "kk" ? "Орыс тіліне ауысу" : "Қазақ тіліне ауысу"}
           aria-label="Тілді ауыстыру"
         >
-          <Globe className="w-3.5 h-3.5 text-[var(--muted-fg)]" />
-          <span>{lang === "kk" ? "ҚАЗ" : "РУС"}</span>
+          <span className="uppercase">{lang}</span>
         </button>
 
-        {/* Theme toggle */}
+        {/* Theme Switch */}
         <button
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          className="p-2 rounded-xl border transition-colors hover:bg-[var(--muted)] min-h-[44px] min-w-[44px] flex items-center justify-center"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2 rounded-xl border text-[var(--fg)] transition-all hover:border-purple-500 hover:text-purple-400"
           style={{
+            background: "var(--card)",
             borderColor: "var(--border-color)",
-            color: "var(--fg)",
           }}
-          title={theme === "light" ? "Түнгі режим" : "Күндізгі режим"}
-          aria-label="Теманы өзгерту"
+          title={theme === "dark" ? "Ашық тақырыпқа ауысу" : "Қараңғы тақырыпқа ауысу"}
+          aria-label="Тақырыпты ауыстыру"
         >
-          {theme === "light" ? (
-            <Moon className="w-4 h-4 text-[var(--muted-fg)]" />
-          ) : (
-            <Sun className="w-4 h-4 text-[var(--warning)]" />
-          )}
+          {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
         </button>
 
-        {/* User Avatar / Auth shortcut */}
+        {/* User Status / Login */}
         {user ? (
-          <Link
-            href="/portfolio"
-            className="flex items-center gap-2 p-1 pl-1.5 rounded-xl border hover:bg-[var(--muted)] transition-colors min-h-[44px]"
-            style={{ borderColor: "var(--border-color)" }}
-            title="Менің профилім"
-          >
-            <span className="hidden md:inline text-xs font-semibold max-w-[90px] truncate" style={{ color: "var(--fg)" }}>
-              {user.name.split(" ")[0]}
-            </span>
+          <div className="flex items-center gap-2.5">
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs text-white"
-              style={{ background: "var(--gradient-primary)" }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border"
+              style={{
+                background: "var(--card)",
+                borderColor: "var(--border-color)",
+              }}
             >
-              {user.name.slice(0, 2).toUpperCase()}
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                {user.name.charAt(0)}
+              </div>
+              <div className="hidden sm:block text-left">
+                <div className="text-xs font-bold text-[var(--fg)] max-w-[120px] truncate leading-tight">
+                  {user.name}
+                </div>
+                <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider">
+                  {user.role === "teacher" ? "Мұғалім" : user.role === "admin" ? "Әкімші" : "Оқушы"}
+                </div>
+              </div>
             </div>
-          </Link>
+
+            <button
+              onClick={logout}
+              className="hidden lg:inline-flex text-xs text-[var(--muted-fg)] hover:text-red-400 px-2 py-1 transition-colors"
+              title="Жүйеден шығу"
+            >
+              {t.auth.logout}
+            </button>
+          </div>
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90 min-h-[44px]"
-            style={{ background: "var(--gradient-primary)" }}
+            className="btn btn-primary text-xs md:text-sm px-4 md:px-5 py-2 rounded-xl font-bold text-white shadow-md flex items-center gap-2 shrink-0 whitespace-nowrap"
           >
-            <UserIcon className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t.auth.loginTitle}</span>
+            <UserIcon className="w-4 h-4" />
+            <span>{t.auth.loginBtn}</span>
           </Link>
         )}
       </div>

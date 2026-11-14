@@ -32,19 +32,37 @@ export function randomShuffle<T>(arr: T[]): T[] {
   return shuffled;
 }
 
-export function calculateLevel(xp: number): { level: number; currentXp: number; nextLevelXp: number } {
+export function calculateLevel(xp: number): {
+  level: number;
+  currentXp: number;
+  nextLevelXp: number;
+  title: string;
+} {
   const thresholds = [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 4000, 5000];
   let level = 1;
   for (let i = 1; i < thresholds.length; i++) {
     if (xp >= thresholds[i]) level = i + 1;
     else break;
   }
+
+  const titles = [
+    "Бастаушы оқушы",
+    "Ізденуші маркетолог",
+    "Креатив шебері",
+    "Бренд стратегі",
+    "SMM шебері",
+    "Маркетинг сарапшысы",
+    "Маркетинг гуруы",
+  ];
+  const title = titles[Math.min(level - 1, titles.length - 1)];
+
   const currentThreshold = thresholds[Math.min(level - 1, thresholds.length - 1)] || 0;
   const nextThreshold = thresholds[Math.min(level, thresholds.length - 1)] || thresholds[thresholds.length - 1] + 1000;
   return {
     level,
     currentXp: xp - currentThreshold,
     nextLevelXp: nextThreshold - currentThreshold,
+    title,
   };
 }
 
@@ -60,25 +78,66 @@ export function hasOnlyRussianLetters(text: string): boolean {
 
 export function checkSloganQuality(text: string, brandName: string): {
   lengthOk: boolean;
+  lengthValid: boolean;
   hasKazakh: boolean;
+  hasKazakhSpecific: boolean;
   noRussianOnly: boolean;
   hasBrand: boolean;
+  brandIncluded: boolean;
   hasRhythmOrCall: boolean;
+  hasCallToAction: boolean;
   score: number;
+  wordCount: number;
+  passedCount: number;
+  feedback: string;
 } {
-  const lengthOk = text.length >= 10 && text.length <= 100;
-  const hasKazakh = hasKazakhLetters(text);
-  const noRussianOnly = !hasOnlyRussianLetters(text);
-  const hasBrand = text.toLowerCase().includes(brandName.toLowerCase());
-  const callWords = ["таңда", "ал", "сатып", "бас", "қосыл", "тіркел", "көр", "оқы", "үйрен", "жаса", "аш"];
-  const hasRhythmOrCall = callWords.some(w => text.toLowerCase().includes(w)) || text.includes("!");
-  
-  let score = 0;
-  if (lengthOk) score += 20;
-  if (hasKazakh) score += 25;
-  if (noRussianOnly) score += 20;
-  if (hasBrand) score += 15;
-  if (hasRhythmOrCall) score += 20;
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+  const lengthValid = wordCount >= 3 && wordCount <= 7;
+  const lengthOk = lengthValid;
 
-  return { lengthOk, hasKazakh, noRussianOnly, hasBrand, hasRhythmOrCall, score };
+  const hasKazakhSpecific = hasKazakhLetters(text);
+  const hasKazakh = hasKazakhSpecific;
+
+  const noRussianOnly = !hasOnlyRussianLetters(text);
+
+  const brandIncluded = brandName.trim().length > 0 && text.toLowerCase().includes(brandName.trim().toLowerCase());
+  const hasBrand = brandIncluded;
+
+  const callWords = ["таңда", "ал", "сатып", "бас", "қосыл", "тіркел", "көр", "оқы", "үйрен", "жаса", "аш", "сезін", "ұмтыл"];
+  const hasCallToAction = callWords.some((w) => text.toLowerCase().includes(w)) || text.includes("!");
+  const hasRhythmOrCall = hasCallToAction;
+
+  let passedCount = 0;
+  if (lengthValid) passedCount++;
+  if (hasKazakhSpecific) passedCount++;
+  if (noRussianOnly) passedCount++;
+  if (brandIncluded) passedCount++;
+  if (hasCallToAction) passedCount++;
+
+  const score = passedCount * 20;
+
+  let feedback = "Керемет! Ұран барлық 5 критерийге толық сәйкес келеді.";
+  if (passedCount < 5) {
+    if (!lengthValid) feedback = "Ұран тым қысқа немесе тым ұзын. Оңтайлысы — 3 пен 6 сөз аралығы.";
+    else if (!hasKazakhSpecific) feedback = "Қазақ тілінің төл әріптерін (ә, і, ң, ғ, ү, ұ, қ, ө, һ) қамтуға тырысыңыз.";
+    else if (!brandIncluded) feedback = `Ұранның ішінде «${brandName}» брендінің атауын міндетті түрде жазыңыз.`;
+    else if (!hasCallToAction) feedback = "Мәтінге екпінді ритм, леп белгісі немесе әрекетке шақыру сөзін қосыңыз.";
+  }
+
+  return {
+    lengthOk,
+    lengthValid,
+    hasKazakh,
+    hasKazakhSpecific,
+    noRussianOnly,
+    hasBrand,
+    brandIncluded,
+    hasRhythmOrCall,
+    hasCallToAction,
+    score,
+    wordCount,
+    passedCount,
+    feedback,
+  };
 }

@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/file-saver": "^2.0.7",
     "clsx": "^2.1.1",
+    "docx": "^9.15.4",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.18.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",

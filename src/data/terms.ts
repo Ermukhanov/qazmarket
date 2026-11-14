@@ -4,6 +4,7 @@ export interface MarketingTerm {
   kazakh: string;
   russian: string;
   definitionKk: string;
+  definition?: string;
   category: "негізгі" | "digital" | "жарнама" | "бренд" | "коммуникация";
   exampleSentenceKk: string;
 }

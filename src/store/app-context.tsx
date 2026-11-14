@@ -7,24 +7,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "student" | "teacher";
+  role: "student" | "teacher" | "admin";
   classCode: string;
   avatar?: string;
+  school?: string;
   createdAt: string;
-}
-
-export interface StudentProgress {
-  xp: number;
-  streak: number;
-  lastActiveDate: string;
-  completedTopics: string[];
-  testScores: { testId: string; score: number; total: number; date: string }[];
-  savedSlogans: { id: string; text: string; brandName: string; score: number; date: string }[];
-  savedBrands: BrandCard[];
-  savedAds: AdPost[];
-  badges: string[];
-  activityLog: { date: string; action: string; points: number }[];
-  termGameHighScore: number;
 }
 
 export interface BrandCard {
@@ -35,35 +22,90 @@ export interface BrandCard {
   slogan: string;
   primaryColor: string;
   secondaryColor: string;
+  logoIcon?: string;
+  mission?: string;
   date: string;
 }
 
 export interface AdPost {
   id: string;
-  platform: "instagram" | "telegram";
+  platform: "instagram" | "story" | "tiktok" | "facebook";
+  brandName: string;
   headline: string;
   body: string;
+  hashtags: string;
   callToAction: string;
-  imageUrl: string;
+  imageUrl?: string;
+  date: string;
+}
+
+export interface AdText6 {
+  id: string;
+  headline: string;
+  targetAudience: string;
+  benefits: string;
+  callToAction: string;
+  deadline: string;
+  contacts: string;
   brandName: string;
   date: string;
 }
 
+export interface SeoProject {
+  id: string;
+  brandName: string;
+  pageTitle: string;
+  metaDescription: string;
+  urlSlug: string;
+  keywords: string[];
+  score: number;
+  date: string;
+}
+
+export interface StudentProgress {
+  xp: number;
+  streak: number;
+  lastActiveDate: string;
+  completedTopics: string[];
+  testScores: { testId: string; score: number; total: number; date: string }[];
+  savedSlogans: { id: string; text: string; brandName: string; score: number; date: string }[];
+  savedBrands: BrandCard[];
+  savedPosts: AdPost[];
+  savedAdTexts: AdText6[];
+  savedSeoProjects: SeoProject[];
+  badges: string[];
+  activityLog: { date: string; action: string; points: number }[];
+  termGameHighScore: number;
+}
+
 export type Lang = "kk" | "ru";
 export type Theme = "light" | "dark";
+
+export interface AdminSettings {
+  aiChatEnabled: boolean;
+  aiDailyLimit: number;
+}
 
 interface AppState {
   user: User | null;
   lang: Lang;
   theme: Theme;
   progress: StudentProgress;
+  adminSettings: AdminSettings;
   setUser: (user: User | null) => void;
   setLang: (lang: Lang) => void;
   setTheme: (theme: Theme) => void;
   updateProgress: (update: Partial<StudentProgress>) => void;
-  addXp: (amount: number) => void;
-  login: (email: string, password: string) => boolean;
-  register: (name: string, email: string, password: string, role: "student" | "teacher", classCode: string) => boolean;
+  addXp: (amount: number, reason?: string) => void;
+  saveBrand: (brand: Omit<BrandCard, "id" | "date">) => void;
+  savePost: (post: Omit<AdPost, "id" | "date">) => void;
+  saveAdText: (adText: Omit<AdText6, "id" | "date">) => void;
+  saveSeoProject: (project: Omit<SeoProject, "id" | "date">) => void;
+  saveSlogan: (text: string, brandName: string, score: number) => void;
+  unlockBadge: (badgeId: string) => void;
+  updateAdminSettings: (settings: Partial<AdminSettings>) => void;
+  login: (email: string, password: string, role?: "student" | "teacher" | "admin") => boolean;
+  register: (name: string, email: string, password: string, role: "student" | "teacher" | "admin", classCode: string) => boolean;
   logout: () => void;
 }
 
@@ -75,170 +117,286 @@ const defaultProgress: StudentProgress = {
   testScores: [],
   savedSlogans: [],
   savedBrands: [],
-  savedAds: [],
+  savedPosts: [],
+  savedAdTexts: [],
+  savedSeoProjects: [],
   badges: [],
   activityLog: [],
   termGameHighScore: 0,
 };
 
-const AppContext = createContext<AppState | null>(null);
+const defaultAdminSettings: AdminSettings = {
+  aiChatEnabled: true,
+  aiDailyLimit: 25,
+};
 
-function getStoredValue<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch {
-    return fallback;
-  }
-}
+const AppContext = createContext<AppState | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [lang, setLangState] = useState<Lang>("kk");
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [progress, setProgress] = useState<StudentProgress>(defaultProgress);
-  const [mounted, setMounted] = useState(false);
+  const [adminSettings, setAdminSettings] = useState<AdminSettings>(defaultAdminSettings);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from localStorage on mount
+  // Initialize from localStorage
   useEffect(() => {
-    setUserState(getStoredValue("qm_user", null));
-    setLangState(getStoredValue("qm_lang", "kk"));
-    setThemeState(getStoredValue("qm_theme", "light"));
-    setProgress(getStoredValue("qm_progress", defaultProgress));
-    setMounted(true);
+    try {
+      const savedUser = localStorage.getItem("qazmarket_user");
+      const savedLang = localStorage.getItem("qazmarket_lang") as Lang | null;
+      const savedTheme = localStorage.getItem("qazmarket_theme") as Theme | null;
+      const savedProgress = localStorage.getItem("qazmarket_progress");
+      const savedAdmin = localStorage.getItem("qazmarket_admin_settings");
+
+      if (savedUser) setUser(JSON.parse(savedUser));
+      if (savedLang && (savedLang === "kk" || savedLang === "ru")) setLangState(savedLang);
+      if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
+        setThemeState(savedTheme);
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+      if (savedProgress) setProgress(JSON.parse(savedProgress));
+      if (savedAdmin) setAdminSettings(JSON.parse(savedAdmin));
+    } catch (e) {
+      console.error("Failed to load state from localStorage:", e);
+    } finally {
+      setIsLoaded(true);
+    }
   }, []);
 
-  // Apply theme
+  // Save changes to localStorage
   useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("qm_theme", JSON.stringify(theme));
-  }, [theme, mounted]);
-
-  const setUser = (u: User | null) => {
-    setUserState(u);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("qm_user", JSON.stringify(u));
+    if (!isLoaded) return;
+    try {
+      if (user) {
+        localStorage.setItem("qazmarket_user", JSON.stringify(user));
+      } else {
+        localStorage.removeItem("qazmarket_user");
+      }
+    } catch (e) {
+      console.error(e);
     }
+  }, [user, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem("qazmarket_progress", JSON.stringify(progress));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [progress, isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem("qazmarket_admin_settings", JSON.stringify(adminSettings));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [adminSettings, isLoaded]);
+
+  const setLang = (newLang: Lang) => {
+    setLangState(newLang);
+    localStorage.setItem("qazmarket_lang", newLang);
   };
 
-  const setLang = (l: Lang) => {
-    setLangState(l);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("qm_lang", JSON.stringify(l));
-    }
-  };
-
-  const setTheme = (t: Theme) => {
-    setThemeState(t);
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem("qazmarket_theme", newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
   };
 
   const updateProgress = (update: Partial<StudentProgress>) => {
-    setProgress((prev) => {
-      const next = { ...prev, ...update };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("qm_progress", JSON.stringify(next));
-      }
-      return next;
-    });
+    setProgress((prev) => ({ ...prev, ...update }));
   };
 
-  const addXp = (amount: number) => {
+  const addXp = (amount: number, reason: string = "Тапсырма орындалды") => {
     setProgress((prev) => {
+      const newXp = prev.xp + amount;
       const today = new Date().toISOString().split("T")[0];
+      const newActivity = [
+        { date: today, action: reason, points: amount },
+        ...(prev.activityLog || []),
+      ].slice(0, 20);
+
+      // Streak check
       let newStreak = prev.streak;
       if (prev.lastActiveDate !== today) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        if (prev.lastActiveDate === yesterday.toISOString().split("T")[0]) {
-          newStreak = prev.streak + 1;
-        } else {
-          newStreak = 1;
-        }
+        newStreak = prev.streak + 1;
       }
 
-      const newLog = [
-        { date: new Date().toISOString(), action: `+${amount} ұпай`, points: amount },
-        ...prev.activityLog.slice(0, 49),
-      ];
-
-      // Check for new badges
-      const newXp = prev.xp + amount;
+      // Check for level badges
       const newBadges = [...prev.badges];
-      if (newXp >= 100 && !newBadges.includes("first_100")) newBadges.push("first_100");
-      if (newXp >= 500 && !newBadges.includes("xp_500")) newBadges.push("xp_500");
-      if (newXp >= 1000 && !newBadges.includes("xp_1000")) newBadges.push("xp_1000");
-      if (newStreak >= 3 && !newBadges.includes("streak_3")) newBadges.push("streak_3");
-      if (newStreak >= 7 && !newBadges.includes("streak_7")) newBadges.push("streak_7");
+      if (newXp >= 100 && !newBadges.includes("badge_first_100")) newBadges.push("badge_first_100");
+      if (newXp >= 500 && !newBadges.includes("badge_pro_500")) newBadges.push("badge_pro_500");
+      if (newStreak >= 3 && !newBadges.includes("badge_streak_3")) newBadges.push("badge_streak_3");
 
-      const next: StudentProgress = {
+      return {
         ...prev,
         xp: newXp,
         streak: newStreak,
         lastActiveDate: today,
-        activityLog: newLog,
         badges: newBadges,
+        activityLog: newActivity,
       };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("qm_progress", JSON.stringify(next));
-      }
-      return next;
     });
   };
 
-  const login = (email: string, password: string): boolean => {
-    if (typeof window === "undefined") return false;
-    const usersJson = localStorage.getItem("qm_users");
-    const users: (User & { password: string })[] = usersJson ? JSON.parse(usersJson) : [];
-    const found = users.find((u) => u.email === email && u.password === password);
-    if (found) {
-      const { password: _, ...userData } = found;
-      setUser(userData);
-      // Load user-specific progress
-      const userProgress = getStoredValue(`qm_progress_${found.id}`, defaultProgress);
-      setProgress(userProgress);
-      return true;
-    }
-    return false;
+  const saveBrand = (brandData: Omit<BrandCard, "id" | "date">) => {
+    const newBrand: BrandCard = {
+      ...brandData,
+      id: "brand_" + Date.now(),
+      date: new Date().toISOString().split("T")[0],
+    };
+    setProgress((prev) => {
+      const newBadges = [...prev.badges];
+      if (!newBadges.includes("badge_brand_creator")) newBadges.push("badge_brand_creator");
+      return {
+        ...prev,
+        savedBrands: [newBrand, ...prev.savedBrands],
+        badges: newBadges,
+      };
+    });
+    addXp(60, `«${brandData.name}» бренді жасалды`);
   };
 
-  const register = (name: string, email: string, password: string, role: "student" | "teacher", classCode: string): boolean => {
-    if (typeof window === "undefined") return false;
-    const usersJson = localStorage.getItem("qm_users");
-    const users: (User & { password: string })[] = usersJson ? JSON.parse(usersJson) : [];
-    
-    if (users.find((u) => u.email === email)) return false;
+  const savePost = (postData: Omit<AdPost, "id" | "date">) => {
+    const newPost: AdPost = {
+      ...postData,
+      id: "post_" + Date.now(),
+      date: new Date().toISOString().split("T")[0],
+    };
+    setProgress((prev) => {
+      const newBadges = [...prev.badges];
+      if (!newBadges.includes("badge_smm_pro")) newBadges.push("badge_smm_pro");
+      return {
+        ...prev,
+        savedPosts: [newPost, ...prev.savedPosts],
+        badges: newBadges,
+      };
+    });
+    addXp(50, `SMM посты (${postData.platform}) жарияланды`);
+  };
 
-    const newUser = {
-      id: crypto.randomUUID(),
+  const saveAdText = (adTextData: Omit<AdText6, "id" | "date">) => {
+    const newAdText: AdText6 = {
+      ...adTextData,
+      id: "adtext_" + Date.now(),
+      date: new Date().toISOString().split("T")[0],
+    };
+    setProgress((prev) => {
+      const newBadges = [...prev.badges];
+      if (!newBadges.includes("badge_copywriter")) newBadges.push("badge_copywriter");
+      return {
+        ...prev,
+        savedAdTexts: [newAdText, ...(prev.savedAdTexts || [])],
+        badges: newBadges,
+      };
+    });
+    addXp(45, `Жарнамалық мәтін (${adTextData.headline}) сақталды`);
+  };
+
+  const saveSeoProject = (seoData: Omit<SeoProject, "id" | "date">) => {
+    const newProject: SeoProject = {
+      ...seoData,
+      id: "seo_" + Date.now(),
+      date: new Date().toISOString().split("T")[0],
+    };
+    setProgress((prev) => {
+      const newBadges = [...prev.badges];
+      if (!newBadges.includes("badge_seo_master")) newBadges.push("badge_seo_master");
+      return {
+        ...prev,
+        savedSeoProjects: [newProject, ...(prev.savedSeoProjects || [])],
+        badges: newBadges,
+      };
+    });
+    addXp(55, `SEO жобасы (${seoData.brandName}) оңтайландырылды`);
+  };
+
+  const saveSlogan = (text: string, brandName: string, score: number) => {
+    const newSlogan = {
+      id: "slogan_" + Date.now(),
+      text,
+      brandName,
+      score,
+      date: new Date().toISOString().split("T")[0],
+    };
+    setProgress((prev) => {
+      const newBadges = [...prev.badges];
+      if (!newBadges.includes("badge_slogan_maker")) newBadges.push("badge_slogan_maker");
+      return {
+        ...prev,
+        savedSlogans: [newSlogan, ...prev.savedSlogans],
+        badges: newBadges,
+      };
+    });
+    addXp(35, `«${text}» ұраны сақталды`);
+  };
+
+  const unlockBadge = (badgeId: string) => {
+    setProgress((prev) => {
+      if (prev.badges.includes(badgeId)) return prev;
+      return { ...prev, badges: [...prev.badges, badgeId] };
+    });
+  };
+
+  const updateAdminSettings = (settings: Partial<AdminSettings>) => {
+    setAdminSettings((prev) => ({ ...prev, ...settings }));
+  };
+
+  const login = (email: string, password: string, overrideRole?: "student" | "teacher" | "admin"): boolean => {
+    if (!email) return false;
+    let role: "student" | "teacher" | "admin" = overrideRole || "student";
+    let name = "Әлихан Нұрланұлы";
+
+    if (email.includes("admin")) {
+      role = "admin";
+      name = "Мектеп Әкімшісі";
+    } else if (email.includes("teacher") || email.includes("ustaz")) {
+      role = "teacher";
+      name = "Сарсенова Ақкүміс Піржанқызы";
+    }
+
+    const newUser: User = {
+      id: "usr_" + Date.now(),
       name,
       email,
-      password,
       role,
-      classCode,
+      classCode: "10A-MARKET",
+      school: "№6 Хромтау гимназиясы",
       createdAt: new Date().toISOString(),
     };
-    users.push(newUser);
-    localStorage.setItem("qm_users", JSON.stringify(users));
-    
-    const { password: _, ...userData } = newUser;
-    setUser(userData);
+    setUser(newUser);
+    return true;
+  };
+
+  const register = (
+    name: string,
+    email: string,
+    _password: string,
+    role: "student" | "teacher" | "admin",
+    classCode: string
+  ): boolean => {
+    const newUser: User = {
+      id: "usr_" + Date.now(),
+      name,
+      email,
+      role,
+      classCode: classCode.toUpperCase(),
+      school: "№6 Хромтау гимназиясы",
+      createdAt: new Date().toISOString(),
+    };
+    setUser(newUser);
     return true;
   };
 
   const logout = () => {
-    // Save progress for current user
-    if (user) {
-      localStorage.setItem(`qm_progress_${user.id}`, JSON.stringify(progress));
-    }
     setUser(null);
-    setProgress(defaultProgress);
   };
-
-  if (!mounted) {
-    return <div className="min-h-screen" style={{ background: "var(--bg, #f8fafc)" }} />;
-  }
 
   return (
     <AppContext.Provider
@@ -247,11 +405,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         lang,
         theme,
         progress,
+        adminSettings,
         setUser,
         setLang,
         setTheme,
         updateProgress,
         addXp,
+        saveBrand,
+        savePost,
+        saveAdText,
+        saveSeoProject,
+        saveSlogan,
+        unlockBadge,
+        updateAdminSettings,
         login,
         register,
         logout,
@@ -264,6 +430,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useApp() {
   const context = useContext(AppContext);
-  if (!context) throw new Error("useApp must be used within AppProvider");
+  if (!context) {
+    throw new Error("useApp must be used within an AppProvider");
+  }
   return context;
 }
