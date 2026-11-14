@@ -133,20 +133,37 @@ export function StudentDashboard() {
     },
   ];
 
-  // Recharts Monthly Progress Data
+  // Recharts Monthly Progress Data (real progression based on user.xp)
   const monthlyChartData = useMemo(() => {
+    const currentXp = progress.xp || 0;
+    if (currentXp === 0) {
+      return [
+        { name: "Қыр", xp: 0, target: 150 },
+        { name: "Қаз", xp: 0, target: 300 },
+        { name: "Қар", xp: 0, target: 450 },
+        { name: "Жел", xp: 0, target: 600 },
+        { name: "Қаң", xp: 0, target: 750 },
+        { name: "Ақп", xp: 0, target: 900 },
+      ];
+    }
+
+    // Proportional breakdown leading up to current accumulated XP
+    const prevNov = currentXp;
+    const prevOct = Math.round(currentXp * 0.6);
+    const prevSep = Math.round(currentXp * 0.25);
     return [
-      { name: "Қыр", xp: 120, target: 150 },
-      { name: "Қаз", xp: 260, target: 300 },
-      { name: "Қар", xp: Math.max(180, progress.xp), target: 450 },
-      { name: "Жел", xp: Math.max(220, progress.xp + 100), target: 600 },
-      { name: "Қаң", xp: 380, target: 750 },
-      { name: "Ақп", xp: 450, target: 900 },
+      { name: "Қыр", xp: prevSep, target: 150 },
+      { name: "Қаз", xp: prevOct, target: 300 },
+      { name: "Қар", xp: prevNov, target: 450 },
+      { name: "Жел", xp: Math.round(prevNov * 1.3), target: 600 },
+      { name: "Қаң", xp: Math.round(prevNov * 1.6), target: 750 },
+      { name: "Ақп", xp: Math.round(prevNov * 2.0), target: 900 },
     ];
   }, [progress.xp]);
 
-  // Weekly Activity Gauge Data
+  // Activity Gauge Data (strictly real count)
   const completedCount =
+    (progress.completedLessons?.length || 0) +
     (progress.completedTopics?.length || 0) +
     (progress.savedBrands?.length || 0) +
     (progress.savedSlogans?.length || 0) +
@@ -154,13 +171,18 @@ export function StudentDashboard() {
     (progress.savedSeoProjects?.length || 0) +
     (progress.testScores?.length || 0);
 
-  const activityPercent = Math.min(100, Math.round((completedCount / 10) * 100));
+  const activityPercent = Math.min(100, Math.round((completedCount / 17) * 100));
 
-  const pieData = [
-    { name: "Орындалған", value: Math.max(5, activityPercent) },
-    { name: "Қалғаны", value: 100 - Math.max(5, activityPercent) },
-  ];
-  const pieColors = ["#8b5cf6", "#242048"];
+  const pieData = activityPercent === 0
+    ? [
+        { name: "Орындалған", value: 0 },
+        { name: "Қалғаны", value: 100 },
+      ]
+    : [
+        { name: "Орындалған", value: activityPercent },
+        { name: "Қалғаны", value: 100 - activityPercent },
+      ];
+  const pieColors = activityPercent === 0 ? ["#334155", "#1e293b"] : ["#8b5cf6", "#242048"];
 
   const topStudents = mockStudents.slice(0, 4);
 
@@ -252,7 +274,9 @@ export function StudentDashboard() {
             <div className="text-2xl md:text-3xl font-extrabold text-emerald-400">
               {completedCount} <span className="text-xs text-[var(--muted-fg)] font-normal">{t.dashboard.tasksUnit}</span>
             </div>
-            <div className="text-[11px] text-[var(--muted-fg)]">Практикалық нәтижелер</div>
+            <div className="text-[11px] text-[var(--muted-fg)]">
+              {completedCount > 0 ? "Практикалық нәтижелер" : "Тапсырмалар әлі басталмаған"}
+            </div>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />

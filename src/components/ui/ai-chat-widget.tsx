@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { MessageSquare, X, Send, Bot, User as UserIcon, Sparkles } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
+import { curriculumLessons } from "@/data/curriculum-lessons";
 
 interface ChatMessage {
   id: string;
@@ -12,9 +14,16 @@ interface ChatMessage {
   time: string;
 }
 
+interface LessonContext {
+  lessonTitle?: string;
+  taskTitle?: string;
+  descriptors?: string[];
+}
+
 export function AiChatWidget() {
   const { lang, adminSettings } = useApp();
   const t = translations[lang] || translations.kk;
+  const pathname = usePathname();
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -57,6 +66,81 @@ export function AiChatWidget() {
     return null;
   }
 
+  // Detect lesson context from current page
+  const detectContext = (): LessonContext | undefined => {
+    if (pathname === "/bilim") {
+      // Try to detect active lesson from localStorage or DOM
+      try {
+        const stored = localStorage.getItem("qazmarket_active_lesson");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const lesson = curriculumLessons.find((l) => l.id === parsed.lessonId);
+          if (lesson) {
+            const task = lesson.tasks[parsed.taskIndex || 0];
+            return {
+              lessonTitle: lesson.title,
+              taskTitle: task?.title,
+              descriptors: task?.descriptors,
+            };
+          }
+        }
+      } catch {}
+      // Fallback: just indicate bilim section
+      return {
+        lessonTitle: "Білім алаңы — 17 сабақтың оқу модулі",
+        taskTitle: "Интерактивті сабақ тапсырмалары",
+        descriptors: ["Маркетингтік терминдерді қазақ тілінде орынды қолдану"],
+      };
+    }
+    if (pathname === "/studio" || pathname === "/copywriter") {
+      return {
+        lessonTitle: "02. Жарнама студиясы — ұран және жарнама мәтіні",
+        taskTitle: "Қазақша ұран/жарнама мәтін құрастыру",
+        descriptors: [
+          "Ұзындығы 3–6 сөз аралығында",
+          "Төл қазақ әріптерін (ә, і, ң, ғ, ү, ұ, қ, ө) қолдану",
+          "Бренд атауын қамту",
+          "Ритм, ұйқас, CTA болуы",
+        ],
+      };
+    }
+    if (pathname === "/brand") {
+      return {
+        lessonTitle: "03. Бренд зертханасы — бренд картасын құру",
+        taskTitle: "Жеке бренд тұжырымдамасы мен нейминг",
+        descriptors: [
+          "Бренд атауы қазақша әуезді болуы",
+          "Мақсатты аудиторияны анықтау",
+          "Ұлттық құндылық бейнелеу",
+        ],
+      };
+    }
+    if (pathname === "/smm" || pathname === "/jarname") {
+      return {
+        lessonTitle: "04. SMM орталығы — әлеуметтік желі контенті",
+        taskTitle: "Қазақша SMM пост дайындау",
+        descriptors: [
+          "Тартымды тақырып жазу",
+          "Қысқа және пайдалы мәтін",
+          "Әрекетке шақыру (CTA)",
+          "Хэштегтер қосу",
+        ],
+      };
+    }
+    if (pathname === "/seo") {
+      return {
+        lessonTitle: "05. SEO шеберханасы — іздеу жүйесін оңтайландыру",
+        taskTitle: "Қазақ тіліндегі SEO мета-деректерін оңтайландыру",
+        descriptors: [
+          "Title тегі 50–60 таңба",
+          "Meta Description 120–160 таңба",
+          "Кілт сөздер мақсатты аудиторияға бағытталуы",
+        ],
+      };
+    }
+    return undefined;
+  };
+
   const handleSend = async (customText?: string) => {
     const textToSend = customText || input;
     if (!textToSend.trim() || loading) return;
@@ -79,10 +163,11 @@ export function AiChatWidget() {
     setLoading(true);
 
     try {
+      const context = detectContext();
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: textToSend }),
+        body: JSON.stringify({ message: textToSend, context }),
       });
 
       const data = await res.json();
@@ -114,6 +199,46 @@ export function AiChatWidget() {
       setLoading(false);
     }
   };
+
+  // Contextual suggestions based on current page
+  const getContextualSuggestions = () => {
+    if (pathname === "/studio" || pathname === "/copywriter") {
+      return [
+        { emoji: "🎯", label: "Ұран критерийлері", text: "Қазақша ұран (слоган) жазу критерийлерін түсіндіріңіз" },
+        { emoji: "✍️", label: "Ұран мысалы", text: "Отандық өнімге қазақша ұран мысалын көрсетіңіз" },
+        { emoji: "📝", label: "6 бөлімді жарнама", text: "Жарнама мәтінінің 6 бөлімін қалай жазу керек?" },
+      ];
+    }
+    if (pathname === "/brand") {
+      return [
+        { emoji: "🏷️", label: "Нейминг кеңесі", text: "Қазақша бренд атауын қалай жасау керек?" },
+        { emoji: "🎨", label: "Бренд кітапшасы", text: "Brand Book деген не, оны қалай құрастырамыз?" },
+        { emoji: "🎯", label: "Мақсатты аудитория", text: "Мақсатты аудиторияны қалай анықтаймыз?" },
+      ];
+    }
+    if (pathname === "/smm" || pathname === "/jarname") {
+      return [
+        { emoji: "📱", label: "SMM кеңес", text: "Instagram постының құрылымы қандай болуы керек?" },
+        { emoji: "#️⃣", label: "Хэштег", text: "Қазақша хэштег жүйесі қалай жұмыс істейді?" },
+        { emoji: "📊", label: "Контент-жоспар", text: "Аптасына қанша пост жариялау керек?" },
+      ];
+    }
+    if (pathname === "/seo") {
+      return [
+        { emoji: "🔍", label: "SEO негіздері", text: "SEO деген не, неге маңызды?" },
+        { emoji: "📝", label: "Meta Description", text: "Meta Description қалай жазылады?" },
+        { emoji: "🗝️", label: "Кілт сөздер", text: "Қазақ тіліндегі кілт сөздерді қалай табамыз?" },
+      ];
+    }
+    // Default
+    return [
+      { emoji: "🎯", label: "Ұран критерийлері", text: t.aiChat.suggestion1 },
+      { emoji: "📊", label: "4P моделі", text: t.aiChat.suggestion2 },
+      { emoji: "📝", label: "№130 ҚМЖ кеңесі", text: t.aiChat.suggestion3 },
+    ];
+  };
+
+  const suggestions = getContextualSuggestions();
 
   return (
     <>
@@ -213,26 +338,17 @@ export function AiChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Suggestions Chips */}
+          {/* Quick Suggestions Chips (contextual) */}
           <div className="px-4 py-2 border-t border-[var(--border-color)] bg-[var(--muted)]/40 flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
-            <button
-              onClick={() => handleSend(t.aiChat.suggestion1)}
-              className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--card)] border border-[var(--border-color)] text-[var(--fg)] hover:border-purple-500 hover:text-purple-400 transition-colors"
-            >
-              🎯 Ұран критерийлері
-            </button>
-            <button
-              onClick={() => handleSend(t.aiChat.suggestion2)}
-              className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--card)] border border-[var(--border-color)] text-[var(--fg)] hover:border-purple-500 hover:text-purple-400 transition-colors"
-            >
-              📊 4P моделі
-            </button>
-            <button
-              onClick={() => handleSend(t.aiChat.suggestion3)}
-              className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--card)] border border-[var(--border-color)] text-[var(--fg)] hover:border-purple-500 hover:text-purple-400 transition-colors"
-            >
-              📝 №130 ҚМЖ кеңесі
-            </button>
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => handleSend(s.text)}
+                className="shrink-0 px-2.5 py-1 rounded-full bg-[var(--card)] border border-[var(--border-color)] text-[var(--fg)] hover:border-purple-500 hover:text-purple-400 transition-colors"
+              >
+                {s.emoji} {s.label}
+              </button>
+            ))}
           </div>
 
           {/* Input Bar */}
@@ -248,8 +364,8 @@ export function AiChatWidget() {
             />
             <button
               onClick={() => handleSend()}
-              disabled={loading || !input.trim() || messageCount >= adminSettings.aiDailyLimit}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold disabled:opacity-50 hover:brightness-110 active:scale-95 transition-all shadow-md shrink-0"
+              disabled={loading || !input.trim()}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
               aria-label="Жіберу"
             >
               <Send className="w-4 h-4" />

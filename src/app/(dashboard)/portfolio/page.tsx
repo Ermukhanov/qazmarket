@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
 import { calculateLevel, formatDate } from "@/lib/utils";
@@ -20,6 +21,7 @@ import {
   User,
   ShieldCheck,
   Trophy,
+  BookOpen,
 } from "lucide-react";
 
 export default function PortfolioPage() {
@@ -177,6 +179,85 @@ export default function PortfolioPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Completed Curriculum Lessons Section */}
+        <div className="card p-6 md:p-8 rounded-3xl border space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)]">
+            <h3 className="text-base font-bold text-[var(--fg)] flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-purple-400" />
+              <span>Орындалған сабақтар мен тапсырмалар нәтижесі</span>
+            </h3>
+            <span className="text-xs font-bold text-purple-400">
+              {progress.lessonSubmissions?.length || 0} / 17 сабақ
+            </span>
+          </div>
+
+          {progress.lessonSubmissions && progress.lessonSubmissions.length > 0 ? (
+            <div className="space-y-4">
+              {progress.lessonSubmissions.map((sub) => (
+                <div
+                  key={sub.lessonId}
+                  className="p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--card-subtle)] space-y-3 text-left"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[var(--border-color)]">
+                    <div>
+                      <span className="text-[11px] font-bold text-purple-400 mr-2">
+                        № {sub.lessonNumber}-сабақ:
+                      </span>
+                      <strong className="text-sm font-bold text-[var(--fg)]">
+                        {sub.lessonTitle}
+                      </strong>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-[var(--muted-fg)]">
+                        {new Date(sub.submittedAt).toLocaleDateString("kk-KZ")}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400">
+                        +{sub.xpEarned} XP
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Task answers */}
+                  <div className="space-y-2">
+                    {sub.taskAnswers.map((ta) => (
+                      <div key={ta.taskId} className="p-3 rounded-xl bg-[var(--card)] border border-[var(--border-color)] text-xs space-y-1">
+                        <div className="flex items-center justify-between font-bold text-[var(--fg)]">
+                          <span>{ta.taskTitle}</span>
+                          <span className="text-emerald-400 text-[10px]">
+                            {ta.achievedDescriptors.length} дескриптор орындалды
+                          </span>
+                        </div>
+                        <p className="text-[var(--muted-fg)] italic bg-[var(--card-subtle)] p-2 rounded-lg">
+                          «{ta.answerText}»
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Reflection */}
+                  <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-purple-400 mr-1.5">{sub.reflection.method}:</span>
+                      <span className="text-[var(--fg)]">{sub.reflection.text}</span>
+                    </div>
+                    <span className="text-sm">
+                      {sub.reflection.rating === "green" ? "🟢 Түсіндім" : sub.reflection.rating === "yellow" ? "🟡 Сұрағым бар" : "🔴 Қиындық"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center rounded-2xl bg-[var(--card-subtle)] border border-dashed border-[var(--border-color)] text-xs text-[var(--muted-fg)] space-y-3">
+              <BookOpen className="w-8 h-8 text-purple-400/50 mx-auto" />
+              <p>Әзірге орындалған сабақтар жоқ. «01. Білім алаңы» бөлімінен алғашқы сабақты бастаңыз!</p>
+              <Link href="/bilim" className="btn btn-secondary text-xs px-4 py-2 rounded-xl font-bold inline-flex items-center gap-1.5">
+                <span>Сабақтарға өту</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Brands Section */}

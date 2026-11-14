@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
-import { lessonPlans, LessonPlan } from "@/data/lesson-plans";
+import { curriculumLessons } from "@/data/curriculum-lessons";
+import { LessonPlan } from "@/data/lesson-plans";
 import { generateOrder130Docx } from "@/lib/docx-generator";
 import {
   GraduationCap,
@@ -18,17 +19,104 @@ import {
   FileText,
   Sparkles,
   BookOpen,
+  Edit3,
+  RotateCcw,
+  Save,
 } from "lucide-react";
+import NotFound from "@/app/not-found";
+
+// Map CurriculumLesson to LessonPlan format
+function toLessonPlan(c: (typeof curriculumLessons)[0]): LessonPlan {
+  return {
+    id: c.id,
+    number: c.number,
+    title: c.title,
+    topic: c.topic,
+    grade: c.grade || "10-сынып",
+    duration: c.duration || "45 минут (2x45 мин)",
+    objective: c.objective,
+    expectedOutcome: c.expectedOutcome,
+    competencies: c.competencies || [
+      "Маркетингтік функционалдық сауаттылық",
+      "Қазақ тіліндегі кәсіби коммуникация",
+      "Сыни және креативті ойлау",
+    ],
+    methods: ["Талдау", "Жұптық жұмыс", "Практикалық зертхана", "QAZMARKET сандық тапсырмалары"],
+    resources: [
+      "QAZMARKET интерактивті платформасы",
+      "Авторлық бағдарлама (Сарсенова А.П.)",
+      "Әдістемелік құрал жұмыс парақтары",
+    ],
+    stages: c.stages || [],
+    assessmentRubric: [
+      {
+        criteria: "Тапсырма дескрипторы бойынша бағалау",
+        descriptors: c.tasks.flatMap((t) => t.descriptors).slice(0, 5),
+      },
+    ],
+    homework: "QAZMARKET жүйесінде сабаққа қатысты тапсырмаларды орындау және портфолиоға енгізу.",
+    school: "«№6 Хромтау гимназиясы» КММ",
+    teacherName: "Сарсенова Ақкүміс Піржанқызы",
+    participants: "10-сынып | Қатысқандар: 24 | Қатыспағандар: 0",
+    section: "Маркетингтегі қазақ тілі",
+  };
+}
 
 export default function LessonPlansPage() {
-  const { lang } = useApp();
+  const { lang, user } = useApp();
   const t = getT(lang);
 
-  const [selectedPlanId, setSelectedPlanId] = useState<string>(lessonPlans[0].id);
+  // Security Guard: Only teachers and administrators can access 09 Lesson Plans
+  if (!user || (user.role !== "teacher" && user.role !== "admin")) {
+    return <NotFound />;
+  }
+
+  const allPlans: LessonPlan[] = curriculumLessons.map(toLessonPlan);
+
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(allPlans[0]?.id || "lesson-1");
   const [copied, setCopied] = useState<boolean>(false);
   const [isExportingDocx, setIsExportingDocx] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editedPlans, setEditedPlans] = useState<Record<string, LessonPlan>>({});
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
-  const currentPlan = lessonPlans.find((p) => p.id === selectedPlanId) || lessonPlans[0];
+  const basePlan = allPlans.find((p) => p.id === selectedPlanId) || allPlans[0];
+  const currentPlan = editedPlans[selectedPlanId] || basePlan;
+
+  const handleFieldChange = (field: keyof LessonPlan, value: string) => {
+    setEditedPlans((prev) => ({
+      ...prev,
+      [selectedPlanId]: {
+        ...currentPlan,
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleStageChange = (idx: number, field: "teacherActivity" | "studentActivity" | "formativeAssessment", val: string) => {
+    const updatedStages = [...currentPlan.stages];
+    updatedStages[idx] = { ...updatedStages[idx], [field]: val };
+    setEditedPlans((prev) => ({
+      ...prev,
+      [selectedPlanId]: {
+        ...currentPlan,
+        stages: updatedStages,
+      },
+    }));
+  };
+
+  const handleResetToDefault = () => {
+    const next = { ...editedPlans };
+    delete next[selectedPlanId];
+    setEditedPlans(next);
+    setIsEditing(false);
+  };
+
+  const handleSaveEdits = () => {
+    setIsEditing(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  };
 
   const handleCopyText = () => {
     let txt = `ҚЫСҚА МЕРЗІМДІ САБАҚ ЖОСПАРЫ (№ 130 бұйрық бойынша)\n\n`;
@@ -89,17 +177,48 @@ export default function LessonPlansPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 mb-2">
             <GraduationCap className="w-3.5 h-3.5" />
-            <span>09. Сабақ жоспарлары</span>
+            <span>09. Сабақ жоспарлары (№ 130 бұйрық)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--fg)]">
             {t.lessonPlans.title}
           </h1>
           <p className="text-xs md:text-sm text-[var(--muted-fg)] mt-1">
-            {t.lessonPlans.subtitle}
+            {t.lessonPlans.subtitle} (Авторлық бағдарламаның барлық 17 сабағы, 34 сағат)
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Edit / Save Toggle */}
+          {isEditing ? (
+            <button
+              onClick={handleSaveEdits}
+              className="btn btn-primary text-xs px-3.5 py-2.5 rounded-xl border flex items-center gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Save className="w-4 h-4" />
+              <span>Сақтау</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="btn btn-secondary text-xs px-3.5 py-2.5 rounded-xl border flex items-center gap-1.5"
+              title="Сабақ жоспарын өңдеу"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Өңдеу</span>
+            </button>
+          )}
+
+          {editedPlans[selectedPlanId] && (
+            <button
+              onClick={handleResetToDefault}
+              className="btn btn-secondary text-xs px-3 py-2.5 rounded-xl border flex items-center gap-1.5 text-amber-400"
+              title="Бастапқы күйіне қайтару"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Қалпына келтіру</span>
+            </button>
+          )}
+
           <button
             onClick={handleCopyText}
             className="btn btn-secondary text-xs px-3.5 py-2.5 rounded-xl border flex items-center gap-1.5"
@@ -130,23 +249,34 @@ export default function LessonPlansPage() {
         </div>
       </div>
 
+      {saveSuccess && (
+        <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Сабақ жоспарына енгізілген өзгерістер сәтті сақталды!</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Lesson Selector Sidebar (4 cols) */}
         <div className="lg:col-span-4 space-y-3 no-print">
           <div className="flex items-center justify-between px-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
-              17 Сабақ тақырыптары
+              Барлық 17 Сабақ (34 сағат)
             </span>
             <span className="text-xs font-bold text-blue-400">10-сынып</span>
           </div>
 
-          <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1">
-            {lessonPlans.map((p) => {
+          <div className="space-y-2 max-h-[750px] overflow-y-auto pr-1">
+            {allPlans.map((p) => {
               const isSelected = p.id === selectedPlanId;
+              const hasEdits = !!editedPlans[p.id];
               return (
                 <button
                   key={p.id}
-                  onClick={() => setSelectedPlanId(p.id)}
+                  onClick={() => {
+                    setSelectedPlanId(p.id);
+                    setIsEditing(false);
+                  }}
                   className={`w-full p-3.5 rounded-2xl border text-left transition-all ${
                     isSelected
                       ? "bg-blue-600 text-white border-blue-500 shadow-md"
@@ -154,8 +284,10 @@ export default function LessonPlansPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs font-bold mb-1">
-                    <span>Сабақ №{p.number}</span>
-                    <span className="text-[10px] opacity-80">{p.duration}</span>
+                    <span>{p.topic.split(":")[0]}</span>
+                    <span className="text-[10px] opacity-80">
+                      {hasEdits ? "Өңделді ✎" : p.duration}
+                    </span>
                   </div>
                   <div className="text-xs font-semibold leading-snug line-clamp-2">
                     {p.title}
@@ -193,15 +325,48 @@ export default function LessonPlansPage() {
               </div>
               <div className="grid grid-cols-12 border-b border-slate-300 dark:border-slate-700 p-2.5">
                 <div className="col-span-4 font-bold text-slate-500 dark:text-slate-400">Сабақтың тақырыбы:</div>
-                <div className="col-span-8 font-bold text-blue-600 dark:text-blue-400">{currentPlan.title}</div>
+                <div className="col-span-8 font-bold text-blue-600 dark:text-blue-400">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={currentPlan.title}
+                      onChange={(e) => handleFieldChange("title", e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-blue-400 bg-transparent"
+                    />
+                  ) : (
+                    currentPlan.title
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-12 border-b border-slate-300 dark:border-slate-700 p-2.5 bg-slate-50 dark:bg-slate-900/40">
                 <div className="col-span-4 font-bold text-slate-500 dark:text-slate-400">Оқу мақсаттары:</div>
-                <div className="col-span-8">{currentPlan.objective}</div>
+                <div className="col-span-8">
+                  {isEditing ? (
+                    <textarea
+                      rows={2}
+                      value={currentPlan.objective}
+                      onChange={(e) => handleFieldChange("objective", e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-blue-400 bg-transparent"
+                    />
+                  ) : (
+                    currentPlan.objective
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-12 p-2.5">
                 <div className="col-span-4 font-bold text-slate-500 dark:text-slate-400">Сабақтың мақсаты:</div>
-                <div className="col-span-8 font-medium">{currentPlan.expectedOutcome}</div>
+                <div className="col-span-8 font-medium">
+                  {isEditing ? (
+                    <textarea
+                      rows={2}
+                      value={currentPlan.expectedOutcome}
+                      onChange={(e) => handleFieldChange("expectedOutcome", e.target.value)}
+                      className="w-full text-xs p-1.5 rounded border border-blue-400 bg-transparent"
+                    />
+                  ) : (
+                    currentPlan.expectedOutcome
+                  )}
+                </div>
               </div>
             </div>
 
@@ -231,13 +396,40 @@ export default function LessonPlansPage() {
                       <div className="text-[11px] text-slate-500">{stage.name}</div>
                     </div>
                     <div className="col-span-4 pr-2 text-slate-700 dark:text-slate-300">
-                      {stage.teacherActivity}
+                      {isEditing ? (
+                        <textarea
+                          rows={2}
+                          value={stage.teacherActivity}
+                          onChange={(e) => handleStageChange(idx, "teacherActivity", e.target.value)}
+                          className="w-full text-xs p-1 rounded border border-blue-400 bg-transparent"
+                        />
+                      ) : (
+                        stage.teacherActivity
+                      )}
                     </div>
                     <div className="col-span-3 pr-2 text-slate-700 dark:text-slate-300">
-                      {stage.studentActivity}
+                      {isEditing ? (
+                        <textarea
+                          rows={2}
+                          value={stage.studentActivity}
+                          onChange={(e) => handleStageChange(idx, "studentActivity", e.target.value)}
+                          className="w-full text-xs p-1 rounded border border-blue-400 bg-transparent"
+                        />
+                      ) : (
+                        stage.studentActivity
+                      )}
                     </div>
                     <div className="col-span-2 font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
-                      {stage.formativeAssessment}
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={stage.formativeAssessment}
+                          onChange={(e) => handleStageChange(idx, "formativeAssessment", e.target.value)}
+                          className="w-full text-[11px] p-1 rounded border border-blue-400 bg-transparent"
+                        />
+                      ) : (
+                        stage.formativeAssessment
+                      )}
                     </div>
                   </div>
                 ))}
@@ -272,9 +464,18 @@ export default function LessonPlansPage() {
 
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 space-y-1.5">
                 <span className="font-bold text-slate-700 dark:text-slate-300 block">Үй тапсырмасы:</span>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {currentPlan.homework}
-                </p>
+                {isEditing ? (
+                  <textarea
+                    rows={2}
+                    value={currentPlan.homework}
+                    onChange={(e) => handleFieldChange("homework", e.target.value)}
+                    className="w-full text-xs p-1.5 rounded border border-blue-400 bg-transparent"
+                  />
+                ) : (
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {currentPlan.homework}
+                  </p>
+                )}
               </div>
             </div>
           </div>

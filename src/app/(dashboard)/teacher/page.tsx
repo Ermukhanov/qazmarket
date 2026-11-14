@@ -23,27 +23,128 @@ import {
   BookMarked,
   Layers,
   X,
+  Eye,
+  CheckCircle,
+  Clock,
+  Filter,
+  Trash2,
 } from "lucide-react";
+import NotFound from "@/app/not-found";
+
+interface MockSubmission {
+  id: string;
+  studentName: string;
+  lessonNumber: number;
+  lessonTitle: string;
+  taskTitle: string;
+  studentAnswer: string;
+  descriptorsAchieved: number;
+  totalDescriptors: number;
+  reflection: string;
+  date: string;
+  status: "Тексерілді" | "Жаңа";
+  score: number;
+}
+
+const defaultSubmissions: MockSubmission[] = [
+  {
+    id: "sub-1",
+    studentName: "Айзере Серікқызы",
+    lessonNumber: 1,
+    lessonTitle: "Қазақ тіліндегі маркетингтің негізгі принциптері",
+    taskTitle: "1-тапсырма: Маркетинг принциптерін анықтау және қазақша баламаларын талдау",
+    studentAnswer:
+      "Отандық бал өндіруші «Бал-Қаймақ» бренді үшін 4P моделі:\n1. Өнім: Таза табиғи Алтай тау балы, шыны құтыда.\n2. Баға: 3200 теңге, орта тапқа лайықты әділ баға.\n3. Орын: Алматы және Астана қалаларындағы эко-дүкендер мен Kaspi дүкені.\n4. Жылжыту: Instagram және TikTok желісінде қазақша сапалы видеолар арқылы таныту.\nҰран: «Бал-Қаймақ — табиғаттың бал шырыны, денсаулықтың кепілі!»",
+    descriptorsAchieved: 3,
+    totalDescriptors: 3,
+    reflection: "Жасыл (Сабақ өте түсінікті, барлық дескрипторларды толық орындадым)",
+    date: "2026-11-14 14:30",
+    status: "Тексерілді",
+    score: 10,
+  },
+  {
+    id: "sub-2",
+    studentName: "Нұрислам Ерланұлы",
+    lessonNumber: 3,
+    lessonTitle: "Қазақ тіліндегі жарнамалық мәтіннің құрылымы мен мазмұны",
+    taskTitle: "1-тапсырма: Жарнама мәтінін 5 критерий бойынша құрастыру",
+    studentAnswer:
+      "«Qazaq Style» киім брендіне арналған жарнама мәтіні:\nБасты тақырып: Ұлттық нақыш — заманауи сән үлгісінде!\nНегізгі мәтін: 100% таза мақтадан тігілген, күнделікті киюге өте ыңғайлы худилер мен жейделер. Өзіңе сенімді бол, ұлттық стильді мақтан тұт!\nCTA: Дәл қазір тапсырыс бер де, 15% жеңілдікке ие бол!",
+    descriptorsAchieved: 3,
+    totalDescriptors: 3,
+    reflection: "Жасыл (Критерийлерді нақты сақтадым)",
+    date: "2026-11-14 15:10",
+    status: "Жаңа",
+    score: 9,
+  },
+  {
+    id: "sub-3",
+    studentName: "Дильназ Бақытқызы",
+    lessonNumber: 8,
+    lessonTitle: "Брендинг негіздері және қазақ тілі",
+    taskTitle: "1-тапсырма: Жеке бренд тұжырымдамасы мен неймингін әзірлеу",
+    studentAnswer:
+      "Бренд атауы: «Тұмар Тәттілері». Өнім: қазақтың дәстүрлі талқан, жент, құрт өнімдерін заманауи бельгиялық шоколадпен үйлестіру. Мақсатты аудитория: салауатты өмір салтын ұстанатын жастар мен туристер.",
+    descriptorsAchieved: 2,
+    totalDescriptors: 3,
+    reflection: "Сары (Нейминг оңай болды, бірақ мақсатты аудиторияны талдауда көмек керек болды)",
+    date: "2026-11-14 16:00",
+    status: "Жаңа",
+    score: 8,
+  },
+];
 
 export default function TeacherPage() {
-  const { lang, user, adminSettings, updateAdminSettings } = useApp();
+  const { lang, user, adminSettings, updateAdminSettings, progress } = useApp();
   const t = getT(lang);
 
-  const [activeTab, setActiveTab] = useState<"students" | "cms" | "settings">("students");
+  const isAuthorized = user && (user.role === "teacher" || user.role === "admin");
+
+  if (!isAuthorized) {
+    return <NotFound />;
+  }
+
+  const [activeTab, setActiveTab] = useState<"students" | "submissions" | "cms" | "settings">("students");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<MockSubmission | null>(null);
 
-  // CMS state (for adding new questions/terms on the fly)
+  // CMS state
   const [cmsItems, setCmsItems] = useState([
     { id: "1", type: "Тест сұрағы", title: "Жарнамадағы 5 критерийдің маңызы", status: "Жарияланды", date: "2026-11-14" },
     { id: "2", type: "Термин", title: "Brand Identity — Бренд бірегейлігі", status: "Жарияланды", date: "2026-11-12" },
     { id: "3", type: "ҚМЖ жоспары", title: "№ 130 бұйрық бойынша 12-сабақ", status: "Черновик", date: "2026-11-10" },
+    { id: "4", type: "Жұмыс парағы", title: "№14 Жұмыс парағы: Тұтынушыны тарту арналары", status: "Жарияланды", date: "2026-11-08" },
   ]);
+  const [cmsFilter, setCmsFilter] = useState<"Барлығы" | "Жарияланды" | "Черновик">("Барлығы");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newType, setNewType] = useState("Тест сұрағы");
   const [newStatus, setNewStatus] = useState("Жарияланды");
+
+  // Submissions list combining mock + real submissions from user
+  const realSubmissions: MockSubmission[] = (progress.lessonSubmissions || []).flatMap((sub, i) =>
+    sub.taskAnswers.map((ans, j) => ({
+      id: `real-${sub.lessonId}-${i}-${j}`,
+      studentName: user.name || "Ағымдағы оқушы",
+      lessonNumber: sub.lessonNumber,
+      lessonTitle: sub.lessonTitle,
+      taskTitle: ans.taskTitle,
+      studentAnswer: ans.answerText,
+      descriptorsAchieved: ans.achievedDescriptors.length,
+      totalDescriptors: 3,
+      reflection: `${sub.reflection.rating || "Жасыл"} (${sub.reflection.text})`,
+      date: sub.submittedAt,
+      status: "Жаңа" as const,
+      score: ans.score || 10,
+    }))
+  );
+
+  const [allSubmissions, setAllSubmissions] = useState<MockSubmission[]>([
+    ...realSubmissions,
+    ...defaultSubmissions,
+  ]);
 
   const classCode = user?.classCode || "10A-MARKET";
 
@@ -60,7 +161,7 @@ export default function TeacherPage() {
     csvContent += "Аты-жөні,Электронды пошта,Сынып коды,Ұпай (XP),Деңгей,Серия (күн),Тақырыптар,Тест орташа балы,Ұрандар,Брендтер,Жарнамалар,Бейдждер,Соңғы белсенділік,Статус\n";
 
     mockStudents.forEach((s) => {
-      csvContent += `"${s.name}","${s.email}","${s.classCode}",${s.xp},${s.level},${s.streak},${s.completedTopicsCount},${s.testScoreAvg}%,${s.slogansCount},${s.brandsCount},${s.adsCount},${s.badgesCount},"${s.lastActive}","${s.status}"\n`;
+      csvContent += `"${s.name}","${s.email}","${s.classCode}",${s.points},${s.level},${s.streak},${s.completedTopicsCount},${s.testScoreAvg}%,${s.slogansCount},${s.brandsCount},${s.adsCount},${s.badgesCount},"${s.lastActive}","${s.status}"\n`;
     });
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -88,9 +189,18 @@ export default function TeacherPage() {
     setShowAddModal(false);
   };
 
+  const handleDeleteCmsItem = (id: string) => {
+    setCmsItems(cmsItems.filter((c) => c.id !== id));
+  };
+
   const filteredStudents = mockStudents.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredCmsItems = cmsItems.filter((c) => {
+    if (cmsFilter === "Барлығы") return true;
+    return c.status === cmsFilter;
+  });
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -99,29 +209,40 @@ export default function TeacherPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 mb-2">
             <Users className="w-3.5 h-3.5" />
-            <span>Мұғалім және әкімшілік кабинеті</span>
+            <span>Мұғалім және әкімшілік басқару панелі</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--fg)]">
             {t.teacher.title}
           </h1>
           <p className="text-xs md:text-sm text-[var(--muted-fg)] mt-1">
-            {t.teacher.subtitle}
+            {t.teacher.subtitle} (№6 Хромтау гимназиясы, 10-сынып)
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center p-1 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)]">
+        <div className="flex flex-wrap items-center p-1 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)]">
           <button
             onClick={() => setActiveTab("students")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "students" ? "bg-blue-600 text-white shadow-md" : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
             }`}
           >
             Сынып тізімі
           </button>
           <button
+            onClick={() => setActiveTab("submissions")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === "submissions" ? "bg-blue-600 text-white shadow-md" : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
+            }`}
+          >
+            <span>Тапсырмалар</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500 text-white font-extrabold">
+              {allSubmissions.length}
+            </span>
+          </button>
+          <button
             onClick={() => setActiveTab("cms")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "cms" ? "bg-blue-600 text-white shadow-md" : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
             }`}
           >
@@ -129,7 +250,7 @@ export default function TeacherPage() {
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "settings" ? "bg-blue-600 text-white shadow-md" : "text-[var(--muted-fg)] hover:text-[var(--fg)]"
             }`}
           >
@@ -141,14 +262,17 @@ export default function TeacherPage() {
       {/* ===== 4 VIBRANT COLOR CARDS (Style of Top-Right Reference) ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Orange - Lesson Plans */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg space-y-3">
+        <Link
+          href="/lesson-plans"
+          className="p-6 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg space-y-3 hover:opacity-95 transition-transform hover:-translate-y-0.5"
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase font-extrabold tracking-wider opacity-90">ҚМЖ Қоры</span>
             <FileText className="w-6 h-6 opacity-90" />
           </div>
           <div className="text-3xl font-black">17 Сабақ</div>
-          <div className="text-xs opacity-90">№ 130 бұйрық үлгісінде дайын</div>
-        </div>
+          <div className="text-xs opacity-90">№ 130 бұйрық үлгісінде дайын →</div>
+        </Link>
 
         {/* Card 2: Blue - Students */}
         <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg space-y-3">
@@ -156,8 +280,8 @@ export default function TeacherPage() {
             <span className="text-xs uppercase font-extrabold tracking-wider opacity-90">Сынып тізімі</span>
             <Users className="w-6 h-6 opacity-90" />
           </div>
-          <div className="text-3xl font-black">16 Оқушы</div>
-          <div className="text-xs opacity-90">10A сынып белсенді тіркелген</div>
+          <div className="text-3xl font-black">{mockStudents.length} Оқушы</div>
+          <div className="text-xs opacity-90">10-сынып белсенді тіркелген</div>
         </div>
 
         {/* Card 3: Emerald - Average Score */}
@@ -167,7 +291,7 @@ export default function TeacherPage() {
             <TrendingUp className="w-6 h-6 opacity-90" />
           </div>
           <div className="text-3xl font-black">88.5%</div>
-          <div className="text-xs opacity-90">Тесттер мен тапсырмалар көрсеткіші</div>
+          <div className="text-xs opacity-90">Тесттер мен тапсырмалар нәтижесі</div>
         </div>
 
         {/* Card 4: Purple - Class Access Code */}
@@ -274,7 +398,85 @@ export default function TeacherPage() {
         </div>
       )}
 
-      {/* ===== TAB 2: CONTENT CMS (Draft / Published) ===== */}
+      {/* ===== TAB 2: SUBMISSIONS INSPECTION (17 Lessons Tasks) ===== */}
+      {activeTab === "submissions" && (
+        <div className="card p-6 md:p-8 rounded-3xl border space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-[var(--fg)] flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <span>Оқушылардың сабақ тапсырмалары (17 сабақ бойынша)</span>
+              </h3>
+              <p className="text-xs text-[var(--muted-fg)] mt-0.5">
+                Оқушылардың дескрипторларды орындауы, шығармашылық жауаптары және рефлексиялары
+              </p>
+            </div>
+            <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/20">
+              Барлығы: {allSubmissions.length} жұмыс
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {allSubmissions.map((sub) => (
+              <div
+                key={sub.id}
+                className="p-5 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] space-y-3 text-xs hover:border-blue-500/40 transition-colors"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-color)] pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[var(--fg)] text-sm">{sub.studentName}</span>
+                    <span className="badge bg-blue-500/15 text-blue-400 text-[10px]">
+                      №{sub.lessonNumber} сабақ
+                    </span>
+                    <span
+                      className={`badge text-[10px] font-bold ${
+                        sub.status === "Тексерілді"
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-amber-500/15 text-amber-400"
+                      }`}
+                    >
+                      {sub.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-[var(--muted-fg)]">
+                    <span>{sub.date}</span>
+                    <span className="font-bold text-purple-400">Баға: {sub.score}/10</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="font-bold text-blue-400 mb-1">{sub.taskTitle}</div>
+                  <p className="text-[var(--fg)] leading-relaxed whitespace-pre-line bg-[var(--card)] p-3 rounded-xl border border-[var(--border-color)]">
+                    {sub.studentAnswer}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+                  <div className="flex items-center gap-4">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Дескриптор: {sub.descriptorsAchieved}/{sub.totalDescriptors} орындалды
+                    </span>
+                    <span className="text-[var(--muted-fg)]">
+                      Рефлексия: <span className="text-[var(--fg)] font-medium">{sub.reflection}</span>
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedSubmission(sub)}
+                    className="btn btn-secondary text-[11px] px-3 py-1.5 rounded-lg border flex items-center gap-1.5 font-bold"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Толық қарау</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== TAB 3: CONTENT CMS (Draft / Published) ===== */}
       {activeTab === "cms" && (
         <div className="card p-6 md:p-8 rounded-3xl border space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -288,20 +490,37 @@ export default function TeacherPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="btn btn-primary text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Жаңа контент қосу</span>
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Filter */}
+              <div className="flex items-center p-1 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-xs">
+                {(["Барлығы", "Жарияланды", "Черновик"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setCmsFilter(f)}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                      cmsFilter === f ? "bg-purple-600 text-white shadow-sm" : "text-[var(--muted-fg)]"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="btn btn-primary text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Жаңа контент қосу</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
-            {cmsItems.map((item) => (
+            {filteredCmsItems.map((item) => (
               <div
                 key={item.id}
-                className="p-4 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] flex items-center justify-between text-xs"
+                className="p-4 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] flex items-center justify-between text-xs hover:border-[var(--border-color)]"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -335,6 +554,13 @@ export default function TeacherPage() {
                   >
                     Ауыстыру
                   </button>
+                  <button
+                    onClick={() => handleDeleteCmsItem(item.id)}
+                    className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    title="Өшіру"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -342,7 +568,7 @@ export default function TeacherPage() {
         </div>
       )}
 
-      {/* ===== TAB 3: AI CHAT SETTINGS ===== */}
+      {/* ===== TAB 4: AI CHAT SETTINGS ===== */}
       {activeTab === "settings" && (
         <div className="card p-6 md:p-8 rounded-3xl border space-y-6">
           <div>
@@ -440,6 +666,67 @@ export default function TeacherPage() {
         </div>
       )}
 
+      {/* Submission Detail Modal */}
+      {selectedSubmission && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="card p-6 md:p-8 rounded-3xl border w-full max-w-xl space-y-4 bg-[var(--card)] shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
+              <div>
+                <span className="badge bg-blue-500/15 text-blue-400 text-xs font-bold mb-1">
+                  №{selectedSubmission.lessonNumber} сабақ
+                </span>
+                <h4 className="text-base font-bold text-[var(--fg)]">{selectedSubmission.studentName}</h4>
+              </div>
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="p-1.5 rounded-lg text-[var(--muted-fg)] hover:text-[var(--fg)] bg-[var(--muted)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="font-bold text-[var(--muted-fg)] block mb-1">Тапсырма тақырыбы:</span>
+                <p className="font-semibold text-[var(--fg)]">{selectedSubmission.taskTitle}</p>
+              </div>
+
+              <div>
+                <span className="font-bold text-[var(--muted-fg)] block mb-1">Оқушының жауабы:</span>
+                <div className="p-4 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-[var(--fg)] whitespace-pre-line leading-relaxed">
+                  {selectedSubmission.studentAnswer}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold">
+                  Дескриптор: {selectedSubmission.descriptorsAchieved}/{selectedSubmission.totalDescriptors} орындалды
+                </div>
+                <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 font-bold">
+                  Балл: {selectedSubmission.score}/10
+                </div>
+              </div>
+
+              <div>
+                <span className="font-bold text-[var(--muted-fg)] block mb-1">Рефлексия (ҚБ):</span>
+                <p className="p-3 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-[var(--fg)]">
+                  {selectedSubmission.reflection}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--border-color)] flex justify-end">
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="btn btn-secondary text-xs px-5 py-2 rounded-xl"
+              >
+                Жабу
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Content Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -462,6 +749,7 @@ export default function TeacherPage() {
                   <option value="Тест сұрағы">Тест сұрағы</option>
                   <option value="Термин">Термин</option>
                   <option value="ҚМЖ жоспары">ҚМЖ жоспары</option>
+                  <option value="Жұмыс парағы">Жұмыс парағы</option>
                   <option value="Кейс">Маркетингтік кейс</option>
                 </select>
               </div>

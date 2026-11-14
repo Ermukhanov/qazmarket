@@ -62,11 +62,33 @@ export interface SeoProject {
   date: string;
 }
 
+export interface LessonSubmission {
+  lessonId: string;
+  lessonNumber: number;
+  lessonTitle: string;
+  submittedAt: string;
+  taskAnswers: {
+    taskId: string;
+    taskTitle: string;
+    answerText: string;
+    achievedDescriptors: string[];
+    score: number;
+  }[];
+  reflection: {
+    method: string;
+    text: string;
+    rating?: string;
+  };
+  xpEarned: number;
+}
+
 export interface StudentProgress {
   xp: number;
   streak: number;
   lastActiveDate: string;
   completedTopics: string[];
+  completedLessons: string[];
+  lessonSubmissions: LessonSubmission[];
   testScores: { testId: string; score: number; total: number; date: string }[];
   savedSlogans: { id: string; text: string; brandName: string; score: number; date: string }[];
   savedBrands: BrandCard[];
@@ -102,6 +124,7 @@ interface AppState {
   saveAdText: (adText: Omit<AdText6, "id" | "date">) => void;
   saveSeoProject: (project: Omit<SeoProject, "id" | "date">) => void;
   saveSlogan: (text: string, brandName: string, score: number) => void;
+  saveLessonSubmission: (submission: LessonSubmission) => void;
   unlockBadge: (badgeId: string) => void;
   updateAdminSettings: (settings: Partial<AdminSettings>) => void;
   login: (email: string, password: string, role?: "student" | "teacher" | "admin") => boolean;
@@ -114,6 +137,8 @@ const defaultProgress: StudentProgress = {
   streak: 0,
   lastActiveDate: "",
   completedTopics: [],
+  completedLessons: [],
+  lessonSubmissions: [],
   testScores: [],
   savedSlogans: [],
   savedBrands: [],
@@ -337,6 +362,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addXp(35, `«${text}» ұраны сақталды`);
   };
 
+  const saveLessonSubmission = (submission: LessonSubmission) => {
+    setProgress((prev) => {
+      const existingSubs = prev.lessonSubmissions || [];
+      const updatedSubs = [submission, ...existingSubs.filter((s) => s.lessonId !== submission.lessonId)];
+      const completed = prev.completedLessons || [];
+      const updatedCompleted = completed.includes(submission.lessonId)
+        ? completed
+        : [...completed, submission.lessonId];
+
+      const newBadges = [...prev.badges];
+      if (updatedCompleted.length >= 1 && !newBadges.includes("badge_first_lesson")) {
+        newBadges.push("badge_first_lesson");
+      }
+      if (updatedCompleted.length >= 17 && !newBadges.includes("badge_course_complete")) {
+        newBadges.push("badge_course_complete");
+      }
+
+      return {
+        ...prev,
+        lessonSubmissions: updatedSubs,
+        completedLessons: updatedCompleted,
+        badges: newBadges,
+      };
+    });
+    addXp(submission.xpEarned, `«${submission.lessonTitle}» сабағы аяқталды`);
+  };
+
   const unlockBadge = (badgeId: string) => {
     setProgress((prev) => {
       if (prev.badges.includes(badgeId)) return prev;
@@ -416,6 +468,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveAdText,
         saveSeoProject,
         saveSlogan,
+        saveLessonSubmission,
         unlockBadge,
         updateAdminSettings,
         login,

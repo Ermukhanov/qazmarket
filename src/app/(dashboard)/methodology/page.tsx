@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
-import { printableWorksheets, Worksheet } from "@/data/worksheets";
+import { fullWorksheets, FullWorksheet } from "@/data/worksheets-full";
+import { evaluationRubrics, EvaluationRubric } from "@/data/rubrics-full";
+import { officialLiterature } from "@/data/literature-full";
+import NotFound from "@/app/not-found";
 import {
   FileSpreadsheet,
   Download,
@@ -17,69 +20,83 @@ import {
   Award,
   Layers,
   HelpCircle,
+  Bookmark,
+  Sparkles,
+  Search,
 } from "lucide-react";
 
 export default function MethodologyPage() {
   const { lang, user } = useApp();
   const t = getT(lang);
 
-  const [activeTab, setActiveTab] = useState<"worksheets" | "rubrics" | "guide">("worksheets");
-  const [selectedWsId, setSelectedWsId] = useState<string>(printableWorksheets[0].id);
-  const [showAnswerKey, setShowAnswerKey] = useState<boolean>(user?.role === "teacher");
+  const isAuthorized = user && (user.role === "teacher" || user.role === "admin");
+  if (!isAuthorized) {
+    return <NotFound />;
+  }
 
-  const currentWs = printableWorksheets.find((w) => w.id === selectedWsId) || printableWorksheets[0];
+  const [activeTab, setActiveTab] = useState<"worksheets" | "rubrics" | "guide" | "literature">("worksheets");
+  const [selectedWsId, setSelectedWsId] = useState<string>(fullWorksheets[0].id);
+  const [showAnswerKey, setShowAnswerKey] = useState<boolean>(true);
+  const [wsSearch, setWsSearch] = useState<string>("");
+
+  const currentWs = fullWorksheets.find((w) => w.id === selectedWsId) || fullWorksheets[0];
+
+  const filteredWorksheets = fullWorksheets.filter(
+    (w) =>
+      w.title.toLowerCase().includes(wsSearch.toLowerCase()) ||
+      w.topic.toLowerCase().includes(wsSearch.toLowerCase()) ||
+      w.number.toString().includes(wsSearch)
+  );
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownloadDocx = () => {
-    let content = `QAZMARKET БАСПАЛЫҚ ЖҰМЫС ПАРАҒЫ\n\n${currentWs.title}\nТақырыбы: ${currentWs.topic}\nСыныбы: ${currentWs.grade} | Уақыты: ${currentWs.duration}\n\n`;
-    content += `Мақсаты: ${currentWs.objective}\nНұсқаулық: ${currentWs.instructions}\n\nТАПСЫРМАЛАР:\n`;
+    let content = `«МАРКЕТИНГТЕГІ ҚАЗАҚ ТІЛІ» КУРСЫНЫҢ БАСПАЛЫҚ ЖҰМЫС ПАРАҒЫ\n\n`;
+    content += `Тақырыбы: ${currentWs.topic}\n`;
+    content += `Сыныбы: 10-сынып | Ең жоғары балл: ${currentWs.maxScore} балл\n`;
+    content += `Оқушының аты-жөні: ____________________________________\n\n`;
+    content += `МАҚСАТЫ:\n${currentWs.goal}\n\n`;
+    content += `ТАПСЫРМАЛАР:\n`;
     currentWs.tasks.forEach((tsk) => {
-      content += `\n${tsk.number}-тапсырма. ${tsk.instruction}\n${tsk.content}\n`;
-      if (tsk.options) {
-        content += `Нұсқалар: ${tsk.options.join(" | ")}\n`;
-      }
+      content += `\n${tsk.taskNumber}-тапсырма: ${tsk.prompt}\n`;
+      tsk.details.forEach((d) => {
+        content += `• ${d}\n`;
+      });
+      content += `Жауабыңыз үшін орын: _________________________________________________\n`;
     });
 
     if (showAnswerKey) {
-      content += `\n\n===============================\nМҰҒАЛІМГЕ АРНАЛҒАН ЖАУАП КІЛТТЕРІ:\n`;
+      content += `\n\n=======================================================\nМҰҒАЛІМГЕ АРНАЛҒАН ЖАУАП КІЛТТЕРІ МЕН БАҒАЛАУ КРИТЕРИЙІ:\n`;
       currentWs.teacherAnswerKey.forEach((k) => {
-        content += `Тапсырма №${k.taskNumber}: ${k.explanation} (${k.points} балл)\n`;
+        content += `Тапсырма №${k.taskNumber} (${k.maxPoints} балл):\nКритерийі: ${k.criteria}\nҮлгі жауап: ${k.sampleAnswer}\n\n`;
       });
-      content += `Жалпы балл: ${currentWs.totalPoints} балл\n`;
     }
 
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Жұмыс_парағы_${currentWs.number}.txt`;
+    link.download = `Жұмыс_парағы_${currentWs.number}_${currentWs.title.replace(/\s+/g, "_")}.txt`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b no-print" style={{ borderColor: "var(--border-color)" }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-6 no-print">
         <div>
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-2"
-            style={{
-              background: "color-mix(in srgb, var(--primary) 15%, transparent)",
-              color: "var(--primary)",
-            }}
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>10-бөлім • {t.nav.methodology}</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 mb-2">
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>10. Әдістемелік құрал және жұмыс парақтары</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold" style={{ color: "var(--fg)" }}>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--fg)]">
             {t.methodology.title}
           </h1>
-          <p className="text-xs md:text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-            {t.methodology.subtitle}
+          <p className="text-xs md:text-sm text-[var(--muted-fg)] mt-1">
+            21 баспалық жұмыс парағы (жауап кілттерімен), 9 критериалды рубрика және пайдаланылған әдебиеттер тізімі
           </p>
         </div>
 
@@ -89,7 +106,7 @@ export default function MethodologyPage() {
             className="btn btn-secondary text-xs flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold shadow-sm"
           >
             <Printer className="w-4 h-4 text-[var(--primary)]" />
-            <span>{t.methodology.printWorksheet}</span>
+            <span>Басып шығару</span>
           </button>
 
           <button
@@ -97,190 +114,208 @@ export default function MethodologyPage() {
             className="btn btn-primary text-xs flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white shadow-md"
           >
             <Download className="w-4 h-4" />
-            <span>DOCX / Текст жүктеу</span>
+            <span>Жұмыс парағын жүктеу</span>
           </button>
         </div>
       </div>
 
-      {/* Main Tabs (Worksheets / Rubrics / Guide) */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[var(--muted)] no-print">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-[var(--border-color)] pb-3 no-print overflow-x-auto">
         <button
           onClick={() => setActiveTab("worksheets")}
-          className={`tab px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "worksheets" ? "bg-[var(--card)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-fg)]"
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
+            activeTab === "worksheets"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-[var(--card)] text-[var(--muted-fg)] hover:text-[var(--fg)] border border-[var(--border-color)]"
           }`}
         >
-          {t.methodology.worksheetsTab}
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>21 Жұмыс парағы (Әдістемелік құрал)</span>
         </button>
+
         <button
           onClick={() => setActiveTab("rubrics")}
-          className={`tab px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "rubrics" ? "bg-[var(--card)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-fg)]"
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
+            activeTab === "rubrics"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-[var(--card)] text-[var(--muted-fg)] hover:text-[var(--fg)] border border-[var(--border-color)]"
           }`}
         >
-          {t.methodology.rubricsTab}
+          <Award className="w-4 h-4" />
+          <span>9 бағалау критерийі (Рубрикатор)</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab("literature")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
+            activeTab === "literature"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-[var(--card)] text-[var(--muted-fg)] hover:text-[var(--fg)] border border-[var(--border-color)]"
+          }`}
+        >
+          <Bookmark className="w-4 h-4" />
+          <span>Пайдаланылған әдебиеттер</span>
+        </button>
+
         <button
           onClick={() => setActiveTab("guide")}
-          className={`tab px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "guide" ? "bg-[var(--card)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-fg)]"
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
+            activeTab === "guide"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-[var(--card)] text-[var(--muted-fg)] hover:text-[var(--fg)] border border-[var(--border-color)]"
           }`}
         >
-          {t.methodology.guideTab}
+          <Sparkles className="w-4 h-4" />
+          <span>Әдістемелік нұсқаулық</span>
         </button>
       </div>
 
-      {/* TAB 1: 10 PRINTABLE WORKSHEETS */}
+      {/* TAB 1: 21 FULL WORKSHEETS */}
       {activeTab === "worksheets" && (
-        <div className="space-y-6">
-          {/* Worksheet selector pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 no-print">
-            {printableWorksheets.map((w) => {
-              const isSelected = selectedWsId === w.id;
-              return (
-                <button
-                  key={w.id}
-                  onClick={() => setSelectedWsId(w.id)}
-                  className={`p-3 rounded-2xl border text-left text-xs font-bold transition-all flex items-center justify-between min-h-[50px] ${
-                    isSelected
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]/20"
-                      : "bg-[var(--card)] hover:bg-[var(--muted)]"
-                  }`}
-                  style={{
-                    borderColor: isSelected ? "var(--primary)" : "var(--border-color)",
-                    color: isSelected ? "var(--primary)" : "var(--fg)",
-                  }}
-                >
-                  <span className="truncate">Парақ №{w.number}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--muted)]">
-                    10б
-                  </span>
-                </button>
-              );
-            })}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Worksheets list (4 cols) */}
+          <div className="lg:col-span-4 space-y-3 no-print">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
+                21 Баспалық жұмыс парағы
+              </span>
+              <span className="text-xs font-bold text-blue-400">10-сынып</span>
+            </div>
+
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-fg)]" />
+              <input
+                type="text"
+                placeholder="Парақ тақырыбы бойынша іздеу..."
+                value={wsSearch}
+                onChange={(e) => setWsSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 rounded-xl text-xs bg-[var(--card-subtle)] border border-[var(--border-color)]"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
+              {filteredWorksheets.map((ws) => {
+                const isSelected = ws.id === selectedWsId;
+                return (
+                  <button
+                    key={ws.id}
+                    onClick={() => setSelectedWsId(ws.id)}
+                    className={`w-full p-3.5 rounded-2xl border text-left transition-all ${
+                      isSelected
+                        ? "bg-blue-600 text-white border-blue-500 shadow-md"
+                        : "border-[var(--border-color)] text-[var(--fg)] hover:bg-[var(--muted)]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold mb-1">
+                      <span>№ {ws.number}-парақ</span>
+                      <span className="text-[10px] opacity-80">{ws.maxScore} балл</span>
+                    </div>
+                    <div className="text-xs font-semibold leading-snug line-clamp-2">
+                      {ws.title}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Worksheet Paper Card */}
-          <div
-            className="card p-6 md:p-10 rounded-3xl border space-y-6 print:border-none print:shadow-none print:p-0"
-            style={{ background: "var(--card)", borderColor: "var(--border-color)" }}
-          >
-            {/* Paper Header */}
-            <div className="border-b-2 pb-4 space-y-2 border-black/20">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-bold">
-                <span className="uppercase text-[var(--primary)]">QAZMARKET Цифрлық білім беру платформасы</span>
-                <span className="text-[var(--muted-fg)]">10-сынып • Қазақ тілі мен маркетинг</span>
-              </div>
-              <h2 className="text-xl md:text-2xl font-black" style={{ color: "var(--fg)" }}>
-                {currentWs.title}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-2">
-                <div className="p-2 rounded-xl bg-[var(--muted)]">
-                  <span className="text-[10px] text-[var(--muted-fg)] block">Оқушының аты-жөні:</span>
-                  <span className="font-semibold">____________________</span>
-                </div>
-                <div className="p-2 rounded-xl bg-[var(--muted)]">
-                  <span className="text-[10px] text-[var(--muted-fg)] block">Сыныбы:</span>
-                  <span className="font-semibold">10 «_____»</span>
-                </div>
-                <div className="p-2 rounded-xl bg-[var(--muted)]">
-                  <span className="text-[10px] text-[var(--muted-fg)] block">Күні:</span>
-                  <span className="font-semibold">«____» ________ 2026 ж.</span>
-                </div>
-                <div className="p-2 rounded-xl bg-[var(--muted)]">
-                  <span className="text-[10px] text-[var(--muted-fg)] block">Баллы:</span>
-                  <span className="font-bold text-[var(--primary)]">______ / {currentWs.totalPoints} б</span>
-                </div>
-              </div>
-            </div>
+          {/* Worksheet Preview Canvas (8 cols) */}
+          <div className="lg:col-span-8">
+            <div className="card p-6 md:p-10 rounded-3xl border space-y-6 shadow-xl bg-white text-slate-900 dark:bg-[#171A36] dark:text-slate-100 print:shadow-none print:border-0 print:p-0">
+              {/* Answer Key Toggle (No Print) */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 no-print">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
+                  Баспаға арналған жұмыс парағы (A4)
+                </span>
 
-            {/* Instruction */}
-            <div className="p-3.5 rounded-2xl bg-[var(--primary)]/10 text-xs font-medium text-[var(--primary)]">
-              📌 {currentWs.instructions}
-            </div>
-
-            {/* Tasks List */}
-            <div className="space-y-6">
-              {currentWs.tasks.map((task) => (
-                <div
-                  key={task.number}
-                  className="p-5 rounded-2xl border space-y-3 bg-[var(--muted)]"
-                  style={{ borderColor: "var(--border-color)" }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--card)] text-[var(--primary)]">
-                      №{task.number} Тапсырма
-                    </span>
-                    <span className="text-[10px] font-bold text-[var(--muted-fg)] uppercase">
-                      {task.type}
-                    </span>
-                  </div>
-
-                  <p className="text-xs sm:text-sm font-bold text-[var(--fg)]">
-                    {task.instruction}
-                  </p>
-
-                  <div className="p-4 rounded-xl bg-[var(--card)] border text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line" style={{ borderColor: "var(--border-color)", color: "var(--fg)" }}>
-                    {task.content}
-                  </div>
-
-                  {task.options && (
-                    <div className="flex flex-wrap gap-2 pt-1 text-xs">
-                      {task.options.map((opt, oi) => (
-                        <span key={oi} className="px-2.5 py-1 rounded-lg bg-[var(--card)] border font-semibold">
-                          {opt}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Student Answer Space */}
-                  <div className="pt-2 text-xs space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-fg)]">
-                      Оқушы жауабы:
-                    </span>
-                    <div className="w-full min-h-[44px] rounded-xl border border-dashed border-gray-400 bg-white/50 p-2.5 text-xs text-black">
-                      {/* Blank area for print */}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* TEACHER ANSWER KEY COLLAPSIBLE */}
-            <div className="pt-6 border-t space-y-3" style={{ borderColor: "var(--border-color)" }}>
-              <div className="flex items-center justify-between no-print">
                 <button
                   onClick={() => setShowAnswerKey(!showAnswerKey)}
-                  className="btn btn-secondary text-xs flex items-center gap-2 py-2 px-3 rounded-xl font-bold"
+                  className={`btn text-xs px-3.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all ${
+                    showAnswerKey
+                      ? "bg-amber-500/20 text-amber-500 border border-amber-500/40"
+                      : "btn-secondary text-[var(--muted-fg)]"
+                  }`}
                 >
-                  <Key className="w-4 h-4 text-[var(--warning)]" />
-                  <span>{showAnswerKey ? "Жауап кілттерін жасыру" : "Мұғалімге арналған жауап кілттерін ашу"}</span>
+                  <Key className="w-3.5 h-3.5" />
+                  <span>{showAnswerKey ? "Жауап кілттерін жасыру" : "Мұғалім жауап кілтін ашу"}</span>
                 </button>
-                <span className="text-xs text-[var(--muted-fg)]">
-                  Тек мұғалімдердің тексеруіне арналған
-                </span>
               </div>
 
-              {showAnswerKey && (
-                <div className="p-6 rounded-2xl bg-[var(--warning)]/10 border border-[var(--warning)]/30 space-y-3 animate-in fade-in">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--warning)] flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{t.methodology.answerKeyHeader}</span>
-                  </h4>
+              {/* Printable Header */}
+              <div className="text-center space-y-1 pb-4 border-b-2 border-slate-900 dark:border-slate-100">
+                <div className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  «МАРКЕТИНГТЕГІ ҚАЗАҚ ТІЛІ» КУРСЫ | 10-СЫНЫП
+                </div>
+                <h2 className="text-lg sm:text-xl font-black uppercase">
+                  ЖҰМЫС ПАРАҒЫ №{currentWs.number}: {currentWs.title}
+                </h2>
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  {currentWs.goal}
+                </div>
+              </div>
 
-                  <div className="space-y-2 text-xs">
+              {/* Student Metadata Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold pb-2 border-b border-dashed border-slate-300 dark:border-slate-700">
+                <div>Оқушының аты-жөні: _________________________________________</div>
+                <div className="sm:text-right">Балы: _____ / {currentWs.maxScore} балл | Күні: «____» _________ 2026 ж.</div>
+              </div>
+
+              {/* Tasks List */}
+              <div className="space-y-6">
+                {currentWs.tasks.map((task) => (
+                  <div key={task.taskNumber} className="space-y-2">
+                    <h3 className="text-xs sm:text-sm font-extrabold flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold text-xs shrink-0">
+                        {task.taskNumber}
+                      </span>
+                      <span>{task.prompt}</span>
+                    </h3>
+
+                    {task.details && task.details.length > 0 && (
+                      <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-xs space-y-1 font-medium">
+                        {task.details.map((d, dIdx) => (
+                          <div key={dIdx} className="flex items-start gap-2">
+                            <span className="text-blue-500 font-bold">•</span>
+                            <span>{d}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Answer writing lines */}
+                    <div className="pt-2 space-y-3">
+                      <div className="border-b border-dashed border-slate-300 dark:border-slate-700 h-6" />
+                      <div className="border-b border-dashed border-slate-300 dark:border-slate-700 h-6" />
+                      <div className="border-b border-dashed border-slate-300 dark:border-slate-700 h-6" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Teacher Answer Key Block (Toggleable) */}
+              {showAnswerKey && (
+                <div className="p-5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 space-y-3 no-print">
+                  <div className="flex items-center gap-2 text-xs font-bold text-amber-500">
+                    <Key className="w-4 h-4" />
+                    <span>Мұғалімге арналған жауап кілттері мен бағалау рубрикасы:</span>
+                  </div>
+
+                  <div className="space-y-2.5 text-xs">
                     {currentWs.teacherAnswerKey.map((key) => (
-                      <div key={key.taskNumber} className="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-[var(--card)] border" style={{ borderColor: "var(--border-color)" }}>
-                        <div>
-                          <span className="font-bold text-[var(--primary)] mr-2">
-                            Тапсырма {key.taskNumber}:
-                          </span>
-                          <span style={{ color: "var(--fg)" }}>{key.explanation}</span>
+                      <div
+                        key={key.taskNumber}
+                        className="p-3 rounded-xl bg-white dark:bg-slate-900/60 border border-amber-500/30 space-y-1"
+                      >
+                        <div className="flex items-center justify-between font-bold text-[var(--fg)]">
+                          <span>Тапсырма №{key.taskNumber} (Ең жоғары: {key.maxPoints} балл)</span>
+                          <span className="text-amber-500 text-[10px]">Критериалды үлгі</span>
                         </div>
-                        <span className="font-bold text-[var(--success)] shrink-0">
-                          +{key.points} балл
-                        </span>
+                        <div className="text-[var(--muted-fg)]">
+                          <strong>Критерий:</strong> {key.criteria}
+                        </div>
+                        <div className="text-emerald-500">
+                          <strong>Үлгі жауап:</strong> {key.sampleAnswer}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -291,75 +326,134 @@ export default function MethodologyPage() {
         </div>
       )}
 
-      {/* TAB 2: EVALUATION RUBRICS */}
+      {/* TAB 2: 9 EVALUATION RUBRICS */}
       {activeTab === "rubrics" && (
-        <div className="card p-6 md:p-8 rounded-3xl border space-y-6" style={{ background: "var(--card)", borderColor: "var(--border-color)" }}>
-          <h3 className="text-lg font-bold" style={{ color: "var(--fg)" }}>
-            Қазақ тілі мен маркетинг курсының критериалды бағалау рубрикалары (10-сынып)
-          </h3>
+        <div className="space-y-6">
+          <div className="card p-6 md:p-8 rounded-3xl border space-y-2">
+            <h3 className="text-xl font-extrabold text-[var(--fg)] flex items-center gap-2">
+              <Award className="w-6 h-6 text-purple-400" />
+              <span>«Маркетингтегі қазақ тілі» курсының 9 бағалау критерийі</span>
+            </h3>
+            <p className="text-xs text-[var(--muted-fg)] leading-relaxed">
+              Авторлық бағдарлама аясында қазақ тілінің маркетингтік коммуникацияларда қолданылуын бағалау үшін қолданылатын ресми өлшемдер мен дескрипторлар жүйесі.
+            </p>
+          </div>
 
-          <div className="space-y-4">
-            <div className="p-5 rounded-2xl border space-y-2 bg-[var(--muted)]" style={{ borderColor: "var(--border-color)" }}>
-              <h4 className="text-sm font-bold text-[var(--primary)]">
-                1. Ұран және жарнамалық мәтінді бағалау критерийі (10 балл)
-              </h4>
-              <ul className="space-y-1 text-xs text-[var(--muted-fg)]">
-                <li>• 9-10 балл: Ұран нақты, ырғақты, қазақ тілінің үндестік заңы мен төл әріптері мінсіз сақталған, бренд құндылығы мен әрекетке шақыру анық.</li>
-                <li>• 7-8 балл: Мәтін жақсы құрылған, бірақ ырғағында немесе әрекетке шақыру етістігінде шағын кемшілік бар.</li>
-                <li>• 4-6 балл: Калька сөздер кездеседі, қазақ тілінің төл әріптері толық қолданылмаған, ұран тым ұзын немесе тым қысқа.</li>
-                <li>• 1-3 балл: Талаптар сақталмаған, орыс тіліндегі штамптар көп, бренд атауы жоқ.</li>
-              </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {evaluationRubrics.map((rubric) => (
+              <div
+                key={rubric.id}
+                className="card p-6 rounded-3xl border flex flex-col justify-between space-y-4 hover:border-purple-500/50 transition-all"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 font-black text-xs flex items-center justify-center">
+                      0{rubric.number}
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                      10 баллдық жүйе
+                    </span>
+                  </div>
+
+                  <h4 className="text-sm font-extrabold text-[var(--fg)] leading-snug">
+                    {rubric.title}
+                  </h4>
+
+                  <p className="text-xs text-[var(--muted-fg)] leading-relaxed">
+                    {rubric.description}
+                  </p>
+
+                  <div className="pt-2 border-t border-[var(--border-color)] space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
+                      Бағалау дескрипторлары:
+                    </span>
+                    {rubric.indicators.map((ind, iIdx) => (
+                      <div key={iIdx} className="flex items-start gap-2 text-[11px] text-[var(--fg)]">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{ind}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: OFFICIAL LITERATURE */}
+      {activeTab === "literature" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Teachers literature */}
+            <div className="card p-6 md:p-8 rounded-3xl border space-y-4">
+              <h3 className="text-base font-extrabold text-[var(--fg)] flex items-center gap-2 pb-3 border-b border-[var(--border-color)]">
+                <BookOpen className="w-5 h-5 text-blue-400" />
+                <span>Пайдаланылған әдебиеттер (Мұғалімдер үшін):</span>
+              </h3>
+
+              <div className="space-y-3">
+                {officialLiterature.teachers.map((lit, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-xs font-semibold text-[var(--fg)] leading-relaxed flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-md bg-blue-500/15 text-blue-400 flex items-center justify-center font-bold shrink-0 text-[10px]">
+                      {idx + 1}
+                    </span>
+                    <span>{lit}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl border space-y-2 bg-[var(--muted)]" style={{ borderColor: "var(--border-color)" }}>
-              <h4 className="text-sm font-bold text-[var(--secondary)]">
-                2. Бренд карточкасын бағалау критерийі (10 балл)
-              </h4>
-              <ul className="space-y-1 text-xs text-[var(--muted-fg)]">
-                <li>• 9-10 балл: Бренд концепциясы толық (атауы, өнімі, ЦА, ұраны, құндылықтары, 2 үйлесімді түсі), ұлттық колорит пен заманауи нақыш үйлесім тапқан.</li>
-                <li>• 7-8 балл: Барлық өрістер толтырылған, бірақ мақсатты аудитория сипаттамасы тым жалпылама берілген.</li>
-                <li>• 4-6 балл: Бренд карточкасының кейбір бөліктері толық емес, түстер үйлесімі әлсіз.</li>
-              </ul>
-            </div>
+            {/* Students literature */}
+            <div className="card p-6 md:p-8 rounded-3xl border space-y-4">
+              <h3 className="text-base font-extrabold text-[var(--fg)] flex items-center gap-2 pb-3 border-b border-[var(--border-color)]">
+                <Bookmark className="w-5 h-5 text-purple-400" />
+                <span>Пайдаланылған әдебиеттер (Оқушылар үшін):</span>
+              </h3>
 
-            <div className="p-5 rounded-2xl border space-y-2 bg-[var(--muted)]" style={{ borderColor: "var(--border-color)" }}>
-              <h4 className="text-sm font-bold text-[var(--success)]">
-                3. Жобаны қорғау және питчингті бағалау критерийі (10 балл)
-              </h4>
-              <ul className="space-y-1 text-xs text-[var(--muted-fg)]">
-                <li>• 9-10 балл: Көпшілік алдында регламентті (2 мин) сақтап, қазақ тілінде еркін әрі сенімді сөйледі, аудитория сұрақтарына дәлелді жауап берді.</li>
-                <li>• 7-8 балл: Баяндама мазмұнды, бірақ сөйлеу қарқынында сенімсіздік байқалады.</li>
-                <li>• 4-6 балл: Тек жазылған қағаздан оқып берді, сұрақтарға жауап беруде қиналды.</li>
-              </ul>
+              <div className="space-y-3">
+                {officialLiterature.students.map((lit, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-xs font-semibold text-[var(--fg)] leading-relaxed flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-md bg-purple-500/15 text-purple-400 flex items-center justify-center font-bold shrink-0 text-[10px]">
+                      {idx + 1}
+                    </span>
+                    <span>{lit}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 3: METHODOLOGICAL GUIDE */}
+      {/* TAB 4: METHODOLOGY GUIDE */}
       {activeTab === "guide" && (
-        <div className="card p-6 md:p-8 rounded-3xl border space-y-6" style={{ background: "var(--card)", borderColor: "var(--border-color)" }}>
-          <h3 className="text-lg font-bold" style={{ color: "var(--fg)" }}>
-            Мұғалімге арналған әдістемелік нұсқаулық
+        <div className="card p-6 md:p-8 rounded-3xl border space-y-6 leading-relaxed text-xs sm:text-sm text-[var(--fg)]">
+          <h3 className="text-lg font-extrabold text-blue-400 border-b border-[var(--border-color)] pb-3">
+            «Маркетингтегі қазақ тілі» курсын оқытудың әдістемелік нұсқаулығы
           </h3>
-
-          <div className="space-y-4 text-xs leading-relaxed" style={{ color: "var(--fg)" }}>
-            <p>
-              <strong>Бағдарламаның жаңалығы:</strong> Бұл курс қазақ тілі сабағын дәстүрлі грамматикалық жаттығулардан практикалық маркетингтік шығармашылыққа бағыттайды. Оқушы сайтқа кіргенде жай ғана ақпарат оқымайды, өзі маркетолог, копирайтер, бренд-дизайнер және жарнама маманы ретінде жұмыс істейді.
-            </p>
-
-            <p>
-              <strong>Сабақты өткізу алгоритмі:</strong>
-              <br />1. Қызығушылықты ояту: сыныпты күнделікті өмірдегі жарнамаларды талдауға тарту;
-              <br />2. QAZMARKET платформасындағы тиісті интерактивті модульге кіру;
-              <br />3. Оқушылардың дербес немесе жұптық практикалық жұмысын ұйымдастыру;
-              <br />4. Жұмыс нәтижелерін жеке цифрлық портфолиоға сақтау;
-              <br />5. Әр сабақ соңында баспалық жұмыс парағымен бекіту немесе тест тапсыру.
-            </p>
-
-            <p>
-              <strong>Мұғалім кабинетінің мүмкіндіктері:</strong> Мұғалім өз сыныбының бірегей кодын (мысалы 10A-MARKET) оқушыларға таратып, олардың прогресін нақты уақытта мониторинг жасай алады және нәтижелерді Excel кестесіне жүктей алады.
-            </p>
+          <p>
+            Бұл авторлық курстың басты міндеті — оқушылардың мемлекеттік тілде сапалы, тартымды және бәсекеге қабілетті маркетингтік контент құру дағдыларын қалыптастыру.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            <div className="p-4 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] space-y-1.5">
+              <div className="font-bold text-blue-400">1. Практикалық бағыт:</div>
+              <p className="text-xs text-[var(--muted-fg)]">
+                Әрбір 45 минуттық сабақта оқушылар нақты брендтермен, слогандармен және жарнамалық посттармен жұмыс істейді.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] space-y-1.5">
+              <div className="font-bold text-purple-400">2. Дескрипторлық жүйе:</div>
+              <p className="text-xs text-[var(--muted-fg)]">
+                Әр тапсырмада оқушыға алдын ала критериалды дескрипторлар ұсынылады, бұл өзін-өзі бағалауға мүмкіндік береді.
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-[var(--card-subtle)] border border-[var(--border-color)] space-y-1.5">
+              <div className="font-bold text-emerald-400">3. Цифрлық портфолио:</div>
+              <p className="text-xs text-[var(--muted-fg)]">
+                Курс соңында оқушы орындаған барлық жұмыстарынан жеке маркетингтік портфолио жинақтап, ресми сертификат алады.
+              </p>
+            </div>
           </div>
         </div>
       )}

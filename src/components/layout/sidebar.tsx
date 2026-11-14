@@ -134,43 +134,45 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* Section: Teachers (2 items + Cabinet) */}
-        <div>
-          <div className="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-wider text-[var(--muted-fg)] flex items-center justify-between">
-            <span>{t.sections.teachersTitle}</span>
-            <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
-          </div>
+        {/* Section: Teachers (Only visible to authenticated teachers & admins) */}
+        {(user?.role === "teacher" || user?.role === "admin") && (
+          <div className="pt-4 border-t border-[var(--border-color)]">
+            <div className="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-wider text-blue-400 flex items-center justify-between">
+              <span>{t.sections.teachersTitle}</span>
+              <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
+            </div>
 
-          <nav className="space-y-1">
-            {teacherLinks.map((item) => {
-              const Icon = item.icon;
-              const active = isLinkActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 min-h-[42px] ${
-                    active
-                      ? "bg-blue-500/15 text-blue-400 font-bold border border-blue-500/30"
-                      : "text-[var(--muted-fg)] hover:text-[var(--fg)] hover:bg-[var(--muted)]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${active ? "text-blue-400" : "text-[var(--muted-fg)]"}`} />
-                    <span className="truncate">{item.label}</span>
-                  </div>
-                  <span
-                    className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase shrink-0 ${
-                      active ? "bg-blue-500/25 text-blue-300" : "bg-[var(--muted)] text-[var(--muted-fg)]"
+            <nav className="space-y-1">
+              {teacherLinks.map((item) => {
+                const Icon = item.icon;
+                const active = isLinkActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 min-h-[42px] ${
+                      active
+                        ? "bg-blue-500/15 text-blue-400 font-bold border border-blue-500/30"
+                        : "text-[var(--muted-fg)] hover:text-[var(--fg)] hover:bg-[var(--muted)]"
                     }`}
                   >
-                    {item.tag}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${active ? "text-blue-400" : "text-[var(--muted-fg)]"}`} />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase shrink-0 ${
+                        active ? "bg-blue-500/25 text-blue-300" : "bg-[var(--muted)] text-[var(--muted-fg)]"
+                      }`}
+                    >
+                      {item.tag}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Footer User Info */}

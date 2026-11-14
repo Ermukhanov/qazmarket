@@ -286,7 +286,7 @@ export function LandingView() {
 
           <div className="lg:col-span-4 flex justify-start lg:justify-end">
             <Link
-              href="/teacher"
+              href="/login?role=teacher"
               className="btn btn-primary px-6 py-3.5 rounded-2xl font-bold text-sm shadow-xl flex items-center gap-2"
             >
               <span>{t.landing.teachersBtn}</span>

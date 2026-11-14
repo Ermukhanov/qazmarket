@@ -44,9 +44,13 @@ export function BottomNav() {
     { href: "/game", label: t.nav.game, icon: Gamepad2, tag: "06" },
     { href: "/portfolio", label: t.nav.portfolio, icon: FolderKanban, tag: "07" },
     { href: "/achievements", label: t.nav.achievements, icon: Trophy, tag: "08" },
-    { href: "/lesson-plans", label: t.nav.lessonPlans, icon: FileText, tag: "09" },
-    { href: "/methodology", label: t.nav.methodology, icon: BookMarked, tag: "10" },
-    { href: "/teacher", label: t.nav.teacher, icon: Users, tag: "Кабинет" },
+    ...((user?.role === "teacher" || user?.role === "admin")
+      ? [
+          { href: "/lesson-plans", label: t.nav.lessonPlans, icon: FileText, tag: "09" },
+          { href: "/methodology", label: t.nav.methodology, icon: BookMarked, tag: "10" },
+          { href: "/teacher", label: t.nav.teacher, icon: Users, tag: "Кабинет" },
+        ]
+      : []),
   ];
 
   return (
