@@ -26,15 +26,15 @@
   --font-sans: var(--font-manrope);
 }
 
-/* ===== Light Theme (Royal Blue EdTech Reference Palette) ===== */
+/* ===== Light Theme (Vibrant Sky Blue EdTech Palette) ===== */
 :root {
   --bg: #F0F4FC;
   --fg: #0f172a;
-  --primary: #1E5BF0;
+  --primary: #00A3FF;
   --primary-fg: #ffffff;
-  --secondary: #2563EB;
+  --secondary: #0284C7;
   --secondary-fg: #ffffff;
-  --muted: #EBF1FB;
+  --muted: #E0F2FE;
   --muted-fg: #64748b;
   --accent: #F59E0B;
   --accent-fg: #ffffff;
@@ -43,7 +43,7 @@
   --card-subtle: #F8FAFD;
   --border-color: #E2E8F0;
   --border-strong: #CBD5E1;
-  --ring: #1E5BF0;
+  --ring: #00A3FF;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -51,21 +51,21 @@
   --sidebar-border: #E2E8F0;
   --header-bg: rgba(255, 255, 255, 0.96);
   --gradient-hero: linear-gradient(135deg, #EBF2FE 0%, #F5F8FF 50%, #EEF4FF 100%);
-  --gradient-primary: linear-gradient(135deg, #1E5BF0 0%, #2563EB 100%);
+  --gradient-primary: linear-gradient(135deg, #00A3FF 0%, #0284C7 100%);
   --gradient-accent: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   --gradient-card: linear-gradient(135deg, #ffffff 0%, #F8FAFD 100%);
-  --shadow-sm: 0 1px 3px rgba(30, 91, 240, 0.04);
-  --shadow-md: 0 4px 16px rgba(30, 91, 240, 0.08);
-  --shadow-lg: 0 12px 30px rgba(30, 91, 240, 0.1);
-  --shadow-xl: 0 20px 40px rgba(30, 91, 240, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 163, 255, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 163, 255, 0.1);
+  --shadow-lg: 0 12px 30px rgba(0, 163, 255, 0.14);
+  --shadow-xl: 0 20px 40px rgba(0, 163, 255, 0.18);
 }
 
-/* ===== Dark Theme (Balanced Slate-Violet Palette - Soft & Eye-Friendly) ===== */
+/* ===== Dark Theme (Balanced Slate-Violet with Sky Accent) ===== */
 [data-theme="dark"] {
   --bg: #13172E;
   --fg: #F8FAFC;
-  --primary: #6366F1;
-  --primary-fg: #ffffff;
+  --primary: #38BDF8;
+  --primary-fg: #0f172a;
   --secondary: #3B82F6;
   --secondary-fg: #ffffff;
   --muted: #222852;
