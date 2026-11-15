@@ -434,7 +434,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role: overrideRole }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -38,11 +38,6 @@ import { calculateLevel } from "@/lib/utils";
 export function StudentDashboard() {
   const { lang, user, progress } = useApp();
   const t = translations[lang] || translations.kk;
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const currentLevelInfo = calculateLevel(progress.xp);
 
@@ -374,35 +369,29 @@ export function StudentDashboard() {
           </div>
 
           <div className="h-64 w-full pt-4">
-            {mounted ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyChartData}>
-                  <defs>
-                    <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card)",
-                      borderColor: "var(--border-color)",
-                      borderRadius: "12px",
-                      color: "var(--fg)",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Area type="monotone" dataKey="xp" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorXp)" name="Сіздің ұпайыңыз" />
-                  <Area type="monotone" dataKey="target" stroke="#3b82f6" strokeWidth={1} strokeDasharray="3 3" fill="none" name="Жоспар" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full w-full flex items-center justify-center text-xs text-[var(--muted-fg)]">
-                Жүктелуде...
-              </div>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthlyChartData}>
+                <defs>
+                  <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--card)",
+                    borderColor: "var(--border-color)",
+                    borderRadius: "12px",
+                    color: "var(--fg)",
+                    fontSize: "12px",
+                  }}
+                />
+                <Area type="monotone" dataKey="xp" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorXp)" name="Сіздің ұпайыңыз" />
+                <Area type="monotone" dataKey="target" stroke="#3b82f6" strokeWidth={1} strokeDasharray="3 3" fill="none" name="Жоспар" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -415,27 +404,25 @@ export function StudentDashboard() {
             </div>
 
             <div className="h-36 relative flex items-center justify-center">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={46}
-                      outerRadius={62}
-                      startAngle={180}
-                      endAngle={0}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {pieData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : null}
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={46}
+                    outerRadius={62}
+                    startAngle={180}
+                    endAngle={0}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {pieData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
               <div className="absolute top-16 left-1/2 -translate-x-1/2 text-center">
                 <span className="text-2xl font-black text-[var(--fg)]">{activityPercent}%</span>
                 <p className="text-[10px] text-[var(--muted-fg)]">Орындалуы</p>
