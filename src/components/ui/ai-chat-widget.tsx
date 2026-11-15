@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { MessageSquare, X, Send, Bot, User as UserIcon, Sparkles } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
@@ -21,9 +21,16 @@ interface LessonContext {
 }
 
 export function AiChatWidget() {
-  const { lang, adminSettings } = useApp();
+  const router = useRouter();
+  const { user, lang, adminSettings } = useApp();
   const t = translations[lang] || translations.kk;
   const pathname = usePathname();
+
+  // 1. CHATBOT IS ONLY AVAILABLE ON THE MAIN DASHBOARD FOR AUTHENTICATED USERS
+  // Hide completely on landing, login, or when user is not logged in!
+  if (!user || pathname === "/landing" || pathname === "/login" || !adminSettings.aiChatEnabled) {
+    return null;
+  }
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -142,6 +149,12 @@ export function AiChatWidget() {
   };
 
   const handleSend = async (customText?: string) => {
+    // Check authentication: if not logged in, redirect to login
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     const textToSend = customText || input;
     if (!textToSend.trim() || loading) return;
 
@@ -167,8 +180,17 @@ export function AiChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: textToSend, context }),
+        body: JSON.stringify({
+          message: textToSend,
+          context,
+          user: { id: user.id, email: user.email, name: user.name },
+        }),
       });
+
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
 
       const data = await res.json();
       const botMsg: ChatMessage = {

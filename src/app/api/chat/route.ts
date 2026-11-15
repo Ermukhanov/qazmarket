@@ -1,36 +1,38 @@
 import { NextResponse } from "next/server";
 
-// In-memory rate limiting map for demo/production safety
+// In-memory rate limiting map
 const rateLimitMap = new Map<string, { count: number; date: string }>();
 
-const BASE_SYSTEM_PROMPT = `Сіз — «QAZMARKET» білім беру платформасының виртуалды ИИ-кеңесшісісіз.
-Платформа 10-сынып оқушылары мен мұғалімдеріне арналған («Маркетингтегі қазақ тілі» авторлық бағдарламасы).
-
-Сіздің міндеттеріңіз:
-1. Тек қана маркетинг, жарнама тілі, қазақ тіліндегі терминология, бренд құру, SMM, SEO және мұғалімдерге арналған № 130 бұйрық бойынша ҚМЖ құрастыру тақырыптарында ғана жауап беру.
-2. Жауаптарды тек сауатты, көркем және түсінікті қазақ тілінде (кириллицада) қайтару.
-3. Оқушының орнына бүкіл үй жұмысын толық жазып бермей, бағыт-бағдар, мысалдар, кеңестер мен дескрипторларды түсіндіру (hint-only mode).
-4. Ұрандар мен жарнамаларды 5 қатаң критерий бойынша бағалауға көмектесу:
-   - Ұзындығы (3–6 сөз);
-   - Төл қазақ әріптерінің (ә, і, ң, ғ, ү, ұ, қ, ө, һ) болуы;
-   - Орысша спецификалық әріптердің (ё, ъ, ь, э, щ, ц) болмауы;
-   - Мәтінде бренд атауының қамтылуы;
-   - Ритм және әрекетке шақыру (Call to Action).
-5. Бөгде тақырыптар (ойын-сауық, кодтау, саясат, т.б.) сұралса, сыпайы түрде тек QAZMARKET маркетинг платформасы бойынша көмектесе алатыныңызды айту.
-6. Жауаптарыңыз қысқа, нақты әрі құрылымды (3-5 сөйлем немесе қысқа тізім) болуы тиіс.`;
+// Lightweight, compact system prompt to minimize token burn
+const BASE_SYSTEM_PROMPT = `Сіз — «QAZMARKET» (10-сынып, қазақ тілі + маркетинг) шағын AI-кеңесшісісіз.
+Қатаң талаптар:
+1. Тек қазақ тілінде жауап беріңіз.
+2. Өте қысқа әрі нақты жауап қайтарыңыз (максимум 2-3 сөйлем). Ұзақ мәтін жазуға тыйым салынады.
+3. Оқушының орнына бүкіл тапсырманы орындап бермеңіз, тек қысқа бағыт, термин немесе мысал беріңіз.
+4. Тек маркетинг, жарнама, бренд, SMM тақырыбы бойынша жауап беріңіз.`;
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "local_user";
+    const { message, context, user } = await req.json();
+
+    // 1. AUTH CHECK: ONLY LOGGED-IN USERS CAN USE THE CHATBOT
+    if (!user || !user.email) {
+      return NextResponse.json(
+        { error: "Чатботты пайдалану үшін алдымен жүйеге кіріңіз.", redirect: "/login" },
+        { status: 401 }
+      );
+    }
+
+    const ip = req.headers.get("x-forwarded-for") || user.email || "local_user";
     const today = new Date().toISOString().split("T")[0];
 
-    // Rate Limiting: 25 messages per day
+    // Rate Limiting: 25 messages per day to prevent token exhaustion
     const userLimit = rateLimitMap.get(ip);
     if (userLimit && userLimit.date === today) {
       if (userLimit.count >= 25) {
         return NextResponse.json(
           {
-            error: "Күндізгі сұрақтар шегі (25 хабарлама) таусылды. Ертең қайта қосылыңыз немесе мұғалімнен көмек сұраңыз.",
+            error: "Күндізгі лимит (25 хабарлама) таусылды. Ертең қайта қосылыңыз.",
           },
           { status: 429 }
         );
@@ -40,19 +42,13 @@ export async function POST(req: Request) {
       rateLimitMap.set(ip, { count: 1, date: today });
     }
 
-    const { message, context } = await req.json();
-
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Хабарлама бос болмауы керек" }, { status: 400 });
     }
 
     let dynamicSystemPrompt = BASE_SYSTEM_PROMPT;
-    if (context) {
-      dynamicSystemPrompt += `\n\nАғымдағы сабақ және тапсырма контексті:
-- Сабақ тақырыбы: ${context.lessonTitle || "Маркетингтегі қазақ тілі"}
-- Тапсырма: ${context.taskTitle || "Практикалық тапсырма"}
-- Дескрипторлар: ${Array.isArray(context.descriptors) ? context.descriptors.join("; ") : "Дескрипторлар бойынша орындау"}
-Нұсқаулық: Оқушыға дайын жауапты тұтастай жазып бермеңіз! Осы дескрипторларға сәйкес қалай ойлану керектігіне бағыт, ұлттық брендтерден мысалдар мен сөздік көмек көрсетіңіз.`;
+    if (context?.taskTitle || context?.lessonTitle) {
+      dynamicSystemPrompt += `\nКонтекст сабақ: ${context.lessonTitle || ""}, тапсырма: ${context.taskTitle || ""}. ${context.descriptors ? `Дескрипторлар: ${context.descriptors}.` : ""} Қысқаша 2 сөйлеммен бағыт беріңіз.`;
     }
 
     const apiKey =
@@ -61,6 +57,7 @@ export async function POST(req: Request) {
 
     if (apiKey) {
       try {
+        // Use lightweight Claude Haiku with strict token cap (max_tokens: 180) to minimize cost
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -69,8 +66,8 @@ export async function POST(req: Request) {
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-haiku-5-5",
-            max_tokens: 800,
+            model: "claude-3-haiku-20240307",
+            max_tokens: 180,
             system: dynamicSystemPrompt,
             messages: [{ role: "user", content: message }],
           }),
@@ -82,35 +79,32 @@ export async function POST(req: Request) {
           if (replyText) {
             return NextResponse.json({ reply: replyText });
           }
-        } else {
-          const errData = await response.json().catch(() => null);
-          console.warn("Anthropic API non-ok status:", response.status, errData);
         }
       } catch (e) {
-        console.error("Anthropic API error, using fallback expert:", e);
+        console.error("AI service error, using local expert engine:", e);
       }
     }
 
-    // Intelligent Fallback Expert Engine (always responds accurately in Kazakh)
+    // Lightweight Local Fallback Expert Engine (concise, instant, 0 tokens burned)
     const lower = message.toLowerCase();
     let reply = "";
 
     if (context && (lower.includes("көмек") || lower.includes("дескриптор") || lower.includes("қалай") || lower.includes("мысал"))) {
-      reply = `«${context.taskTitle || context.lessonTitle}» тапсырмасы бойынша кеңес:\n1. Дескрипторларды басшылыққа алыңыз: қазақ тілінің бай сөздік қорын, маркетингтік терминдерді орынды қолданыңыз.\n2. Нақты мысал келтіріңіз: отандық нарықтағы қазақстандық өнімдерді («Qazaq Republic», «Рахат», «Ақсай нан») негізге алыңыз.\n3. Сөз саптауыңызда буын үйлесімі мен эмоциялық қуатқа назар аударыңыз. Жауабыңызды жазып болған соң, «Авторлық жауаппен салыстыру» батырмасын басып тексеріңіз!`;
+      reply = `«${context.taskTitle || context.lessonTitle}» тапсырмасы бойынша кеңес: дескрипторларға сүйеніп, қазақша маркетинг терминдерін орынды қолданыңыз. Жауабыңызды жазып болған соң, «Авторлық жауаппен салыстыру» арқылы тексеріңіз.`;
     } else if (lower.includes("ұран") || lower.includes("слоган") || lower.includes("критерий")) {
-      reply = `Қазақша ұран (слоган) құрастыруда 5 басты критерий бар:\n1. Ұзындығы 3–6 сөз аралығында ықшам болуы керек.\n2. Қазақ тілінің төл әріптерін (ә, і, ң, ғ, ү, ұ, қ, ө, һ) қолданыңыз.\n3. Орысша спецификалық әріптерден (ё, ъ, ь, э) аулақ болыңыз.\n4. Мәтінде бренд атауын міндетті түрде қамтыңыз.\n5. Ритм, ұйқас және нақты әрекетке шақыру (CTA) болуы тиіс.\nМысалы: «Qazaq Republic — дала рухының заманауи көрінісі!»`;
+      reply = `Қазақша ұран құрастырудағы 3 негізгі талап: 3–6 сөз аралығында ықшам болуы, төл әріптердің (ә, і, ң, ғ, ү, ұ, қ, ө, һ) сақталуы және нақты бренд атауы мен әрекетке шақырудың (CTA) болуы.`;
     } else if (lower.includes("4p") || lower.includes("модель") || lower.includes("принцип")) {
-      reply = `Маркетингтің классикалық 4P моделі 4 негізгі элементтен тұрады:\n• Product (Өнім) — тұтынушы қажеттілігін өтейтін тауар немесе қызмет.\n• Price (Баға) — өнімнің нарықтағы құны мен жеңілдік саясаты.\n• Place (Орын/Сату нүктесі) — өнімді жеткізу және тарату арналары.\n• Promotion (Жылжыту) — жарнама, PR және әлеуметтік желілердегі таныту шаралары.`;
+      reply = `Классикалық 4P моделі: Product (өнім), Price (баға), Place (сату нүктесі), Promotion (жарнама мен жылжыту). Осы 4 элемент маркетинг стратегиясының өзегі саналады.`;
     } else if (lower.includes("қмж") || lower.includes("130") || lower.includes("сабақ жоспар")) {
-      reply = `ҚР Оқу-ағарту министрлігінің № 130 бұйрығы бойынша ҚМЖ 3 негізгі уақыттық кезеңнен тұрады:\n1. Сабақтың басы (10 минут) — ұйымдастыру, өткенді қайталау, оқу мақсатын хабарлау.\n2. Сабақтың ортасы (25 минут) — дескрипторлары бар жаңа білім мен практикалық тапсырмалар (ҚБ: Бағдаршам, Өзін-өзі бағалау).\n3. Сабақтың соңы (10 минут) — бекіту, рефлексия және үй тапсырмасы.\n«09 Сабақ жоспарлары» бөлімінде 17 тақырыптың дайын үлгісін көре аласыз және DOCX форматында жүктей аласыз!`;
-    } else if (lower.includes("smm") || lower.includes("instagram") || lower.includes("инстаграм") || lower.includes("пост")) {
-      reply = `SMM жарнамалық постының 4 алтын ережесі:\n1. Назар аударатын тақырып (алғашқы 3 секундта қызықтыру).\n2. Тұтынушының мәселесін шешетін қысқа әрі пайдалы мәтін.\n3. Әрекетке шақыру (Call to Action: «Сілтемеге өт», «Тіркел»).\n4. Қазақша тақырыптық хэштегтер (#ҚазақТілі, #ОтандықӨнім).\n«04 SMM орталығы» бөлімінде смартфон мокапында нақты көре аласыз!`;
-    } else if (lower.includes("seo") || lower.includes("іздеу") || lower.includes("google")) {
-      reply = `SEO (іздеу жүйесін оңтайландыру) бойынша негізгі көрсеткіштер:\n• Title тегі — 50–60 таңба, басты кілт сөз алдында болуы шарт.\n• Meta Description — 120–160 таңба, өнімнің артықшылығы мен шақыру қамтылуы керек.\n• Қазақ тілді іздеу сұраныстары бойынша сайтты Google мен Yandex-тің алғашқы орындарына шығару үшін «05 SEO шеберханасын» пайдаланыңыз.`;
-    } else if (lower.includes("бренд") || lower.includes("нейминг") || lower.includes("атау")) {
-      reply = `Бренд жасауда нейминг (атау беру) шешуші рөл атқарады:\n• Атау қазақ тілінде әуезді әрі есте қаларлық болуы керек.\n• Өнімнің мәнін немесе ұлттық құндылығын бейнелеуі тиіс.\n• Басқа тілдерде жағымсыз мағына бермеуі қажет.\n«03 Бренд зертханасында» өзіңіздің бренд карточкаңызды жасап, PNG сурет ретінде жүктеп алыңыз!`;
+      reply = `№ 130 бұйрық бойынша ҚМЖ 3 бөліктен тұрады: басы (10 мин), ортасы (25 мин, дескрипторлы тапсырмалар) және соңы (10 мин, рефлексия). Үлгілер «09 Сабақ жоспарлары» бөлімінде бар.`;
+    } else if (lower.includes("smm") || lower.includes("instagram") || lower.includes("пост")) {
+      reply = `SMM жарнамалық посты үшін: алғашқы 3 секундта қызықтыратын тақырып, пайдалы қысқа мәтін, нақты әрекетке шақыру (CTA) және қазақша хэштегтер қолданыңыз.`;
+    } else if (lower.includes("seo") || lower.includes("іздеу")) {
+      reply = `SEO-да Title 50–60 таңба, ал Meta Description 120–160 таңба болуы керек. Басты кілт сөздер қазақ тіліндегі іздеу сұраныстарына дәл келуі тиіс.`;
+    } else if (lower.includes("бренд") || lower.includes("нейминг")) {
+      reply = `Бренд атауы қазақ тілінде әуезді, есте тез қалатын және ұлттық құндылықты бейнелейтін мағыналы сөздерден тұруы қажет.`;
     } else {
-      reply = `Сұрағыңызға рақмет! Сіз «QAZMARKET» маркетинг зертханасында өз жобаларыңызды жасай аласыз:\n• 02 бөлімде қазақша ұран жазып, сапасын тексеріңіз;\n• 03 бөлімде жеке брендіңізді құрастырыңыз;\n• 04 бөлімде SMM постын жариялаңыз;\n• 06 бөлімде 60+ тест сұрақтары мен кейстерді талдаңыз.\nНақты қай тақырып бойынша көмек қажет?`;
+      reply = `QAZMARKET AI-көмекшісі: қазақша ұран жазу, бренд құру, SMM пост дайындау немесе сабақ дескрипторлары бойынша нақты сұрағыңызды қойыңыз.`;
     }
 
     return NextResponse.json({ reply });
