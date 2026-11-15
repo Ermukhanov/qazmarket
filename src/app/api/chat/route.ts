@@ -51,9 +51,7 @@ export async function POST(req: Request) {
       dynamicSystemPrompt += `\nКонтекст сабақ: ${context.lessonTitle || ""}, тапсырма: ${context.taskTitle || ""}. ${context.descriptors ? `Дескрипторлар: ${context.descriptors}.` : ""} Қысқаша 2 сөйлеммен бағыт беріңіз.`;
     }
 
-    const apiKey =
-      process.env.ANTHROPIC_API_KEY ||
-      "";
+    const apiKey = process.env.ANTHROPIC_API_KEY || "";
 
     if (apiKey) {
       try {
