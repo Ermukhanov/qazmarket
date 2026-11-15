@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { mockStudents, StudentRecord } from "@/data/mock-students";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const supabase = getServiceSupabase();
     const { data: usersData, error } = await supabase.auth.admin.listUsers({
