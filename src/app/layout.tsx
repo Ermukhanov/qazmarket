@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   description: "10-сынып оқушыларына арналған қазақ тілі + маркетинг + цифрлық сауаттылық интерактивті білім беру веб-платформасы. «Қазақша ойла. Креативті жаса. Нарықта таныт!»",
   keywords: ["маркетинг", "қазақ тілі", "10-сынып", "копирайтинг", "бренд", "жарнама", "QAZMARKET", "білім", "Хромтау гимназиясы"],
   authors: [{ name: "Сарсенова Ақкүміс Піржанқызы, №6 Хромтау гимназиясы" }],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
