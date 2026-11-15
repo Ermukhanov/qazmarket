@@ -31,7 +31,7 @@ import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
 
 export function LandingView() {
-  const { lang, setLang } = useApp();
+  const { lang, setLang, user } = useApp();
   const isKz = lang === "kk";
 
   const modules = [
@@ -175,21 +175,33 @@ export function LandingView() {
             <Search className="w-4 h-4" />
           </Link>
 
-          {/* Login Outline Button */}
-          <Link
-            href="/login"
-            className="px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-900 text-[#1E5BF0] hover:bg-blue-50 dark:hover:bg-blue-950 font-bold text-xs sm:text-sm transition-all"
-          >
-            {isKz ? "Кіру" : "Войти"}
-          </Link>
+          {user ? (
+            <Link
+              href="/"
+              className="px-4 sm:px-5 py-2 rounded-xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+            >
+              <span>{isKz ? "Кабинетке өту" : "В кабинет"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          ) : (
+            <>
+              {/* Login Outline Button */}
+              <Link
+                href="/login"
+                className="px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-900 text-[#1E5BF0] hover:bg-blue-50 dark:hover:bg-blue-950 font-bold text-xs sm:text-sm transition-all"
+              >
+                {isKz ? "Кіру" : "Войти"}
+              </Link>
 
-          {/* Register Solid Blue Button */}
-          <Link
-            href="/login?tab=register"
-            className="px-4 sm:px-5 py-2 rounded-xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
-          >
-            <span>{isKz ? "Тіркелу" : "Регистрация"}</span>
-          </Link>
+              {/* Register Solid Blue Button */}
+              <Link
+                href="/login?tab=register"
+                className="px-4 sm:px-5 py-2 rounded-xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+              >
+                <span>{isKz ? "Тіркелу" : "Регистрация"}</span>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 

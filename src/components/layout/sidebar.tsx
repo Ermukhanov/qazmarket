@@ -17,6 +17,7 @@ import {
   Users,
   LogOut,
   GraduationCap,
+  Globe,
 } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
@@ -84,17 +85,31 @@ export function Sidebar() {
       {/* Navigation List */}
       <div className="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
         {/* Main Dashboard Link */}
-        <Link
-          href="/"
-          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-150 ${
-            pathname === "/"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-              : "text-[var(--fg)] hover:bg-[var(--muted)]"
-          }`}
-        >
-          <LayoutDashboard className="w-4 h-4 shrink-0" />
-          <span>{t.nav.dashboard}</span>
-        </Link>
+        <div className="space-y-1">
+          <Link
+            href="/"
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-150 ${
+              pathname === "/"
+                ? "bg-[#1E5BF0] text-white shadow-md shadow-blue-500/25"
+                : "text-[var(--fg)] hover:bg-[var(--muted)]"
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4 shrink-0" />
+            <span>{t.nav.dashboard}</span>
+          </Link>
+
+          <Link
+            href="/landing"
+            className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 ${
+              pathname === "/landing"
+                ? "bg-blue-500/15 text-[#1E5BF0] font-bold border border-blue-500/30"
+                : "text-[var(--muted-fg)] hover:text-[var(--fg)] hover:bg-[var(--muted)]"
+            }`}
+          >
+            <Globe className="w-4 h-4 shrink-0" />
+            <span>Басты инфо-бет (Сайт)</span>
+          </Link>
+        </div>
 
         {/* Section: Students (8 items) */}
         <div>
