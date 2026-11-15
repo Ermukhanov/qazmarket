@@ -244,7 +244,7 @@ ${hashtags}`;
         </div>
 
         {/* Right Phone Mockup (5 cols) */}
-        <div className="lg:col-span-5 flex justify-center sticky top-24">
+        <div className="lg:col-span-5 flex justify-center lg:sticky lg:top-24">
           <div className="w-full max-w-[340px] rounded-[36px] p-3.5 bg-slate-900 border-4 border-slate-700 shadow-2xl space-y-3 text-white">
             {/* Phone Speaker & Camera Notch */}
             <div className="w-24 h-4 bg-slate-800 rounded-full mx-auto" />

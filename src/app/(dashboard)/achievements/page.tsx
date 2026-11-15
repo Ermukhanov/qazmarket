@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
-import { mockStudents } from "@/data/mock-students";
+import { getDynamicClassLeaderboard } from "@/lib/students-service";
 import { calculateLevel } from "@/lib/utils";
 import {
   Trophy,
@@ -116,8 +116,12 @@ export default function AchievementsPage() {
     window.print();
   };
 
-  const topThree = mockStudents.slice(0, 3);
-  const remainingStudents = mockStudents.slice(3, 8);
+  const allClassStudents = useMemo(() => {
+    return getDynamicClassLeaderboard(user, progress);
+  }, [user, progress]);
+
+  const topThree = allClassStudents.slice(0, 3);
+  const remainingStudents = allClassStudents.slice(3, 10);
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
@@ -344,37 +348,55 @@ export default function AchievementsPage() {
           <div className="grid grid-cols-3 gap-2.5 pt-1 text-center">
             {/* 2nd Place */}
             {topThree[1] && (
-              <div className="p-3 rounded-2xl bg-slate-800/40 border border-slate-600/40 flex flex-col items-center justify-between space-y-1">
+              <div className={`p-3 rounded-2xl flex flex-col items-center justify-between space-y-1 ${
+                topThree[1].isCurrentUser
+                  ? "bg-blue-500/20 border-2 border-blue-400 shadow-md shadow-blue-500/20"
+                  : "bg-slate-800/40 border border-slate-600/40"
+              }`}>
                 <span className="text-xl">🥈</span>
                 <div className="text-[11px] font-bold text-[var(--fg)] truncate max-w-[80px]">
-                  {topThree[1].name.split(" ")[0]}
+                  {topThree[1].name.split(" ")[0]} {topThree[1].isCurrentUser ? "★" : ""}
                 </div>
                 <div className="text-[10px] text-purple-400 font-extrabold">{topThree[1].points} XP</div>
-                <span className="text-[9px] text-[var(--muted-fg)]">2-орын</span>
+                <span className="text-[9px] text-[var(--muted-fg)]">
+                  {topThree[1].isCurrentUser ? "Сіз (2-орын)" : "2-орын"}
+                </span>
               </div>
             )}
 
             {/* 1st Place (Gold) */}
             {topThree[0] && (
-              <div className="p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-400/60 shadow-md shadow-amber-500/20 flex flex-col items-center justify-between space-y-1 -translate-y-2">
+              <div className={`p-3.5 rounded-2xl flex flex-col items-center justify-between space-y-1 -translate-y-2 ${
+                topThree[0].isCurrentUser
+                  ? "bg-amber-500/25 border-2 border-amber-300 ring-2 ring-blue-500 shadow-lg shadow-amber-500/30"
+                  : "bg-amber-500/15 border-2 border-amber-400/60 shadow-md shadow-amber-500/20"
+              }`}>
                 <Crown className="w-6 h-6 text-amber-400" />
                 <div className="text-xs font-black text-[var(--fg)] truncate max-w-[90px]">
-                  {topThree[0].name.split(" ")[0]}
+                  {topThree[0].name.split(" ")[0]} {topThree[0].isCurrentUser ? "★" : ""}
                 </div>
                 <div className="text-xs text-amber-400 font-black">{topThree[0].points} XP</div>
-                <span className="text-[10px] font-bold text-amber-400">🥇 Үздік</span>
+                <span className="text-[10px] font-bold text-amber-400">
+                  {topThree[0].isCurrentUser ? "🥇 Сіз (Үздік!)" : "🥇 Үздік"}
+                </span>
               </div>
             )}
 
             {/* 3rd Place */}
             {topThree[2] && (
-              <div className="p-3 rounded-2xl bg-amber-900/20 border border-amber-700/40 flex flex-col items-center justify-between space-y-1">
+              <div className={`p-3 rounded-2xl flex flex-col items-center justify-between space-y-1 ${
+                topThree[2].isCurrentUser
+                  ? "bg-blue-500/20 border-2 border-blue-400 shadow-md shadow-blue-500/20"
+                  : "bg-amber-900/20 border border-amber-700/40"
+              }`}>
                 <span className="text-xl">🥉</span>
                 <div className="text-[11px] font-bold text-[var(--fg)] truncate max-w-[80px]">
-                  {topThree[2].name.split(" ")[0]}
+                  {topThree[2].name.split(" ")[0]} {topThree[2].isCurrentUser ? "★" : ""}
                 </div>
                 <div className="text-[10px] text-purple-400 font-extrabold">{topThree[2].points} XP</div>
-                <span className="text-[9px] text-[var(--muted-fg)]">3-орын</span>
+                <span className="text-[9px] text-[var(--muted-fg)]">
+                  {topThree[2].isCurrentUser ? "Сіз (3-орын)" : "3-орын"}
+                </span>
               </div>
             )}
           </div>
@@ -384,14 +406,29 @@ export default function AchievementsPage() {
             {remainingStudents.map((st, i) => (
               <div
                 key={st.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-[var(--card-subtle)] border border-[var(--border-color)] text-xs"
+                className={`flex items-center justify-between p-3 rounded-xl border text-xs transition-colors ${
+                  st.isCurrentUser
+                    ? "bg-blue-500/15 border-blue-500/50 shadow-sm"
+                    : "bg-[var(--card-subtle)] border-[var(--border-color)]"
+                }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center bg-[var(--muted)] text-[var(--muted-fg)]">
-                    {i + 4}
+                  <span className={`w-6 h-6 rounded-full font-bold text-xs flex items-center justify-center ${
+                    st.isCurrentUser
+                      ? "bg-blue-500 text-white"
+                      : "bg-[var(--muted)] text-[var(--muted-fg)]"
+                  }`}>
+                    {st.rank || i + 4}
                   </span>
                   <div>
-                    <div className="font-bold text-[var(--fg)]">{st.name}</div>
+                    <div className="font-bold text-[var(--fg)] flex items-center gap-1.5">
+                      <span>{st.name}</span>
+                      {st.isCurrentUser && (
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-[#1E5BF0] text-white">
+                          Сіз
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[10px] text-[var(--muted-fg)]">{st.completedTasks} тапсырма орындалды</div>
                   </div>
                 </div>
@@ -458,7 +495,7 @@ export default function AchievementsPage() {
               СЕРТИФИКАТ
             </div>
             <h2 className="text-2xl sm:text-4xl font-black text-[var(--fg)] tracking-tight">
-              {user?.name || "Әлихан Нұрланұлы"}
+              {user?.name || (lang === "ru" ? "Юный маркетолог" : "Жас маркетолог")}
             </h2>
             <p className="text-xs sm:text-sm text-[var(--muted-fg)] max-w-xl mx-auto leading-relaxed font-medium">
               «Маркетингтегі қазақ тілі» 10-сыныпқа арналған авторлық элективті білім беру бағдарламасын табысты меңгеріп, жеке маркетингтік цифрлық портфолиосын толық қорғағаны үшін берілді.

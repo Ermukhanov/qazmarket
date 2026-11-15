@@ -259,7 +259,7 @@ export default function SeoPage() {
         </div>
 
         {/* Right SERP Mockup (5 cols) */}
-        <div className="lg:col-span-5 space-y-4 sticky top-24">
+        <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
           <div className="card p-6 rounded-2xl border space-y-4 shadow-xl">
             {/* SERP Controls */}
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">

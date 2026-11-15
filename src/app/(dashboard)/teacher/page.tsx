@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
@@ -146,6 +146,19 @@ export default function TeacherPage() {
     ...defaultSubmissions,
   ]);
 
+  const [studentsList, setStudentsList] = useState<StudentRecord[]>(mockStudents);
+
+  useEffect(() => {
+    fetch("/api/teacher/students")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.students && Array.isArray(data.students)) {
+          setStudentsList(data.students);
+        }
+      })
+      .catch((err) => console.warn("Failed to load students:", err));
+  }, []);
+
   const classCode = user?.classCode || "10A-MARKET";
 
   const handleCopyCode = async () => {
@@ -160,7 +173,7 @@ export default function TeacherPage() {
     let csvContent = "\uFEFF"; // UTF-8 BOM for Excel
     csvContent += "Аты-жөні,Электронды пошта,Сынып коды,Ұпай (XP),Деңгей,Серия (күн),Тақырыптар,Тест орташа балы,Ұрандар,Брендтер,Жарнамалар,Бейдждер,Соңғы белсенділік,Статус\n";
 
-    mockStudents.forEach((s) => {
+    studentsList.forEach((s) => {
       csvContent += `"${s.name}","${s.email}","${s.classCode}",${s.points},${s.level},${s.streak},${s.completedTopicsCount},${s.testScoreAvg}%,${s.slogansCount},${s.brandsCount},${s.adsCount},${s.badgesCount},"${s.lastActive}","${s.status}"\n`;
     });
 
@@ -193,8 +206,9 @@ export default function TeacherPage() {
     setCmsItems(cmsItems.filter((c) => c.id !== id));
   };
 
-  const filteredStudents = mockStudents.filter((s) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStudents = studentsList.filter((s) =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredCmsItems = cmsItems.filter((c) => {
@@ -280,7 +294,7 @@ export default function TeacherPage() {
             <span className="text-xs uppercase font-extrabold tracking-wider opacity-90">Сынып тізімі</span>
             <Users className="w-6 h-6 opacity-90" />
           </div>
-          <div className="text-3xl font-black">{mockStudents.length} Оқушы</div>
+          <div className="text-3xl font-black">{studentsList.length} Оқушы</div>
           <div className="text-xs opacity-90">10-сынып белсенді тіркелген</div>
         </div>
 

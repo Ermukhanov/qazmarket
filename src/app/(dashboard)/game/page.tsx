@@ -268,15 +268,15 @@ export default function GamePage() {
               </div>
             </div>
 
-            {/* Game Board */}
+            {/* Game Board (Side-by-side on all screens for optimal matching) */}
             {isPlayingTerms ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-6 pt-2">
                 {/* English Column */}
                 <div className="space-y-3">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
-                    Ағылшын терминдері
+                  <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)] truncate">
+                    Ағылшын термині
                   </div>
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {termPairs.map((p) => {
                       const matched = matchedEnIds.includes(p.id);
                       const isSel = selectedEn === p.id;
@@ -285,7 +285,7 @@ export default function GamePage() {
                           key={"en_" + p.id}
                           disabled={matched}
                           onClick={() => handleTermMatch(p.id, true)}
-                          className={`p-3.5 rounded-xl border text-sm font-bold text-left transition-all ${
+                          className={`p-2.5 sm:p-3.5 rounded-xl border text-xs sm:text-sm font-bold text-left transition-all ${
                             matched
                               ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 opacity-60"
                               : isSel
@@ -302,10 +302,10 @@ export default function GamePage() {
 
                 {/* Kazakh Column (Shuffled) */}
                 <div className="space-y-3">
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
-                    Қазақша баламалары
+                  <div className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)] truncate">
+                    Қазақша баламасы
                   </div>
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {[...termPairs]
                       .sort((a, b) => a.kk.localeCompare(b.kk))
                       .map((p) => {
@@ -315,7 +315,7 @@ export default function GamePage() {
                             key={"kk_" + p.id}
                             disabled={matched}
                             onClick={() => handleTermMatch(p.id, false)}
-                            className={`p-3.5 rounded-xl border text-sm font-bold text-left transition-all ${
+                            className={`p-2.5 sm:p-3.5 rounded-xl border text-xs sm:text-sm font-bold text-left transition-all ${
                               matched
                                 ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 opacity-60"
                                 : "border-[var(--border-color)] text-[var(--fg)] hover:bg-[var(--muted)] hover:border-purple-500"

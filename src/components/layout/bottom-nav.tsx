@@ -18,13 +18,14 @@ import {
   FileText,
   BookMarked,
   Users,
+  LogOut,
 } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { lang, user } = useApp();
+  const { lang, user, logout } = useApp();
   const t = translations[lang] || translations.kk;
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -112,6 +113,21 @@ export function BottomNav() {
                 );
               })}
             </div>
+
+            {user && (
+              <div className="pt-2 border-t border-[var(--border-color)]">
+                <button
+                  onClick={() => {
+                    setDrawerOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-red-500/30 text-red-400 bg-red-500/10 text-xs font-bold hover:bg-red-500/20 active:scale-98 transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{t.auth.logout}</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

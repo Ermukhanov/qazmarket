@@ -461,7 +461,7 @@ export default function StudioPage() {
 
           {/* Right Live Preview Card (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="card p-6 rounded-2xl border space-y-4 bg-gradient-to-br from-[var(--card)] to-[var(--card-subtle)] shadow-xl sticky top-24">
+            <div className="card p-6 rounded-2xl border space-y-4 bg-gradient-to-br from-[var(--card)] to-[var(--card-subtle)] shadow-xl lg:sticky lg:top-24">
               <div className="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-purple-600 flex items-center justify-center text-white font-black text-xs">

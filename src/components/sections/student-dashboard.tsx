@@ -32,7 +32,7 @@ import {
 } from "recharts";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
-import { mockStudents } from "@/data/mock-students";
+import { getDynamicClassLeaderboard } from "@/lib/students-service";
 import { calculateLevel } from "@/lib/utils";
 
 export function StudentDashboard() {
@@ -184,7 +184,9 @@ export function StudentDashboard() {
       ];
   const pieColors = activityPercent === 0 ? ["#334155", "#1e293b"] : ["#8b5cf6", "#242048"];
 
-  const topStudents = mockStudents.slice(0, 4);
+  const topStudents = useMemo(() => {
+    return getDynamicClassLeaderboard(user, progress).slice(0, 4);
+  }, [user, progress]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -447,12 +449,25 @@ export function StudentDashboard() {
 
             <div className="space-y-2">
               {topStudents.map((st, i) => (
-                <div key={st.id} className="flex items-center justify-between text-xs py-1">
+                <div
+                  key={st.id}
+                  className={`flex items-center justify-between text-xs py-1 px-2 rounded-lg transition-colors ${
+                    st.isCurrentUser
+                      ? "bg-blue-500/15 border border-blue-500/40 font-bold"
+                      : ""
+                  }`}
+                >
                   <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-[10px]">
-                      {i + 1}
+                    <span className={`w-5 h-5 rounded-full font-bold flex items-center justify-center text-[10px] ${
+                      st.isCurrentUser
+                        ? "bg-[#1E5BF0] text-white"
+                        : "bg-purple-500/20 text-purple-400"
+                    }`}>
+                      {st.rank || i + 1}
                     </span>
-                    <span className="text-[var(--fg)] font-medium truncate max-w-[120px]">{st.name}</span>
+                    <span className="text-[var(--fg)] font-medium truncate max-w-[120px]">
+                      {st.name} {st.isCurrentUser ? "(Сіз)" : ""}
+                    </span>
                   </div>
                   <span className="font-bold text-purple-400">{st.points} XP</span>
                 </div>

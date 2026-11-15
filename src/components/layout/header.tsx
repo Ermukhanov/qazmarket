@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sun, Moon, Sparkles, User as UserIcon, GraduationCap } from "lucide-react";
+import { Sun, Moon, Sparkles, User as UserIcon, GraduationCap, LogOut } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
 
@@ -134,10 +134,15 @@ export function Header() {
 
             <button
               onClick={logout}
-              className="hidden lg:inline-flex text-xs text-[var(--muted-fg)] hover:text-red-400 px-2 py-1 transition-colors"
-              title="Жүйеден шығу"
+              className="p-2 rounded-xl border text-[var(--muted-fg)] hover:text-red-400 hover:border-red-400/40 transition-colors flex items-center justify-center shrink-0"
+              style={{
+                background: "var(--card)",
+                borderColor: "var(--border-color)",
+              }}
+              title={t.auth.logout}
+              aria-label={t.auth.logout}
             >
-              {t.auth.logout}
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         ) : (
