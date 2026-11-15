@@ -6,122 +6,28 @@ import {
   Play,
   ArrowRight,
   Search,
-  Users,
   BookOpen,
+  Laptop,
   Trophy,
-  Star,
-  Calculator,
-  Atom,
-  FlaskConical,
-  Code2,
-  Feather,
-  Globe2,
-  Landmark,
   Send,
   Youtube,
-  Github,
-  Globe,
+  Instagram,
   ArrowDown,
 } from "lucide-react";
 import { useApp } from "@/store/app-context";
 
 export function LandingView() {
-  const { user, lang, setLang } = useApp();
-
-  const isRu = lang === "ru";
-
-  const subjects = [
-    {
-      id: "math",
-      titleRu: "Математика",
-      titleKk: "Математика",
-      subRu: "Логика и точность",
-      subKk: "Логика мен дәлдік",
-      icon: Calculator,
-      color: "bg-emerald-50 text-emerald-600",
-      href: "/bilim",
-    },
-    {
-      id: "physics",
-      titleRu: "Физика",
-      titleKk: "Физика",
-      subRu: "Открывай законы мира",
-      subKk: "Әлем заңдарын аш",
-      icon: Atom,
-      color: "bg-blue-50 text-[#1E5BF0]",
-      href: "/bilim",
-    },
-    {
-      id: "chemistry",
-      titleRu: "Химия",
-      titleKk: "Химия",
-      subRu: "Исследуй и экспериментируй",
-      subKk: "Зертте және сынақ жаса",
-      icon: FlaskConical,
-      color: "bg-teal-50 text-teal-600",
-      href: "/bilim",
-    },
-    {
-      id: "it",
-      titleRu: "Информатика",
-      titleKk: "Информатика",
-      subRu: "Создавай будущее",
-      subKk: "Болашақты жаса",
-      icon: Code2,
-      color: "bg-indigo-50 text-indigo-600",
-      href: "/studio",
-    },
-    {
-      id: "kazakh",
-      titleRu: "Казахский язык",
-      titleKk: "Қазақ тілі",
-      subRu: "Говори и пиши красиво",
-      subKk: "Әдемі сөйле және жаз",
-      icon: Feather,
-      color: "bg-sky-50 text-[#00A3FF]",
-      href: "/bilim",
-    },
-    {
-      id: "russian",
-      titleRu: "Русский язык",
-      titleKk: "Орыс тілі",
-      subRu: "Учись уверенно",
-      subKk: "Сенімді үйрен",
-      icon: BookOpen,
-      color: "bg-blue-50 text-[#1E5BF0]",
-      href: "/bilim",
-    },
-    {
-      id: "english",
-      titleRu: "Английский язык",
-      titleKk: "Ағылшын тілі",
-      subRu: "Открывай новые горизонты",
-      subKk: "Жаңа көкжиектерді аш",
-      icon: Globe2,
-      color: "bg-rose-50 text-rose-600",
-      href: "/bilim",
-    },
-    {
-      id: "history",
-      titleRu: "История Казахстана",
-      titleKk: "Қазақстан тарихы",
-      subRu: "Знай свою историю",
-      subKk: "Тарихыңды біл",
-      icon: Landmark,
-      color: "bg-emerald-50 text-emerald-600",
-      href: "/bilim",
-    },
-  ];
+  const { user } = useApp();
 
   return (
     <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto pb-10 font-sans select-none text-left">
       {/* ========================================================================= */}
-      {/* 1. TOP NAVBAR (ТОЧЬ В ТОЧЬ С ОБРАЗЦА)                                      */}
+      {/* 1. TOP NAVBAR                                                             */}
       {/* ========================================================================= */}
-      <nav className="bg-white rounded-full border border-slate-200 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-xs">
+      <nav className="bg-white rounded-full border border-slate-200/90 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-xs">
         {/* Left: Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-[#1E5BF0] flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-[#1E5BF0] flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
             <GraduationCap className="w-5 h-5" />
           </div>
           <span className="font-black text-xl tracking-tight text-slate-900">
@@ -130,71 +36,45 @@ export function LandingView() {
         </Link>
 
         {/* Center: Navigation Pills */}
-        <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-600">
+        <div className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-slate-600">
           <Link
             href="/"
             className="px-4 py-2 rounded-full bg-[#E0ECFD] text-[#1E5BF0] font-black"
           >
-            {isRu ? "Главная" : "Басты бет"}
+            Басты бет
           </Link>
           <Link
             href="/bilim"
             className="px-4 py-2 rounded-full hover:text-[#1E5BF0] hover:bg-slate-50 transition-colors"
           >
-            {isRu ? "Курсы" : "Курстар"}
-          </Link>
-          <Link
-            href="/game"
-            className="px-4 py-2 rounded-full hover:text-[#1E5BF0] hover:bg-slate-50 transition-colors"
-          >
-            {isRu ? "Тесты" : "Тесттер"}
+            Білім алаңы
           </Link>
           <Link
             href="/studio"
             className="px-4 py-2 rounded-full hover:text-[#1E5BF0] hover:bg-slate-50 transition-colors"
           >
-            {isRu ? "Задания" : "Тапсырмалар"}
+            Тәжірибе
           </Link>
           <Link
             href="/portfolio"
             className="px-4 py-2 rounded-full hover:text-[#1E5BF0] hover:bg-slate-50 transition-colors"
           >
-            {isRu ? "Портфолио" : "Портфолио"}
+            Портфолио
           </Link>
           <a
             href="#about"
             className="px-4 py-2 rounded-full hover:text-[#1E5BF0] hover:bg-slate-50 transition-colors"
           >
-            {isRu ? "О платформе" : "Платформа туралы"}
+            Жоба туралы
           </a>
         </div>
 
-        {/* Right: Search, Lang Switch & Auth Buttons */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Language Switcher */}
-          <div className="flex items-center rounded-full bg-slate-100 p-0.5 text-[11px] font-bold text-slate-600">
-            <button
-              onClick={() => setLang("ru")}
-              className={`px-2.5 py-1 rounded-full transition-all ${
-                isRu ? "bg-white text-[#1E5BF0] shadow-2xs font-black" : "hover:text-slate-900"
-              }`}
-            >
-              RU
-            </button>
-            <button
-              onClick={() => setLang("kk")}
-              className={`px-2.5 py-1 rounded-full transition-all ${
-                !isRu ? "bg-white text-[#1E5BF0] shadow-2xs font-black" : "hover:text-slate-900"
-              }`}
-            >
-              KZ
-            </button>
-          </div>
-
+        {/* Right: Search & Auth Buttons */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <Link
             href="/bilim"
             className="w-9 h-9 rounded-full border border-slate-200 text-slate-500 hover:text-[#1E5BF0] transition-colors flex items-center justify-center"
-            aria-label="Поиск"
+            aria-label="Іздеу"
           >
             <Search className="w-4 h-4" />
           </Link>
@@ -204,22 +84,22 @@ export function LandingView() {
               href="/"
               className="px-5 py-2 rounded-full bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all flex items-center gap-1.5"
             >
-              <span>{isRu ? "Кабинет" : "Кабинет"}</span>
+              <span>Кабинетке өту</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           ) : (
             <>
               <Link
                 href="/login"
-                className="px-5 py-2 rounded-full border border-slate-300 text-slate-700 hover:border-[#1E5BF0] hover:text-[#1E5BF0] font-bold text-xs sm:text-sm transition-all"
+                className="px-5 py-2 rounded-full border border-blue-200 text-[#1E5BF0] hover:bg-blue-50 font-bold text-xs sm:text-sm transition-all"
               >
-                {isRu ? "Войти" : "Кіру"}
+                Кіру
               </Link>
               <Link
                 href="/login?tab=register"
                 className="px-5 py-2 rounded-full bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all"
               >
-                {isRu ? "Регистрация" : "Тіркелу"}
+                Тіркелу
               </Link>
             </>
           )}
@@ -229,56 +109,47 @@ export function LandingView() {
       {/* ========================================================================= */}
       {/* 2. HERO SECTION                                                           */}
       {/* ========================================================================= */}
-      <section className="relative rounded-3xl overflow-hidden border border-blue-100/90 shadow-xs bg-[#EDF3FD] bg-[url('/images/hero-bg.jpg')] bg-cover bg-no-repeat bg-[center_right_-20px] md:bg-right-top min-h-[400px] sm:min-h-[440px] md:min-h-[470px] flex items-center">
+      <section className="relative rounded-3xl overflow-hidden border border-blue-100 shadow-xs bg-[#EDF3FD] bg-[url('/images/hero-bg.jpg')] bg-cover bg-no-repeat bg-[center_right_-20px] md:bg-right-top min-h-[400px] sm:min-h-[440px] md:min-h-[470px] flex items-center">
         {/* Soft gradient mask for mobile readability to ensure left text is always 100% legible */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#EEF4FE] via-[#EEF4FE]/92 sm:via-[#EEF4FE]/80 to-transparent lg:to-transparent pointer-events-none" />
 
         <div className="relative z-10 w-full p-6 sm:p-10 md:p-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column (Content area: 7 cols on desktop) */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-6">
-            {/* Top Pill: 🏛️ Aqbobek Lyceum • Образовательная платформа */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold bg-[#E0ECFD] text-[#1E5BF0] border border-blue-200/90 shadow-2xs">
-              <Landmark className="w-3.5 h-3.5 text-[#1E5BF0]" />
-              <span>
-                {isRu
-                  ? "Aqbobek Lyceum • Образовательная платформа"
-                  : "Aqbobek Lyceum • Білім беру платформасы"}
-              </span>
+            {/* Top Pill Badge: 10-СЫНЫПҚА АРНАЛҒАН ИНТЕРАКТИВТІ ПЛАТФОРМА */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-black bg-[#E3EDFD] text-[#1E5BF0] border border-blue-200/90 shadow-2xs uppercase tracking-wide">
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>10-сыныпқа арналған интерактивті платформа</span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-5xl md:text-[54px] font-black text-slate-900 tracking-tight leading-[1.12]">
-              QAZMARKET —<br />
-              <span>{isRu ? "Твой путь к знаниям" : "Білімге бастар жол"}</span><br />
-              <span className="text-[#1E5BF0]">
-                {isRu ? "и большим возможностям" : "және зор мүмкіндіктер"}
-              </span>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
+              Қазақша ойла.<br />
+              <span className="text-[#1E5BF0]">Креативті жаса.</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-lg">
-              {isRu
-                ? "Учись. Развивайся. Достигай успеха вместе с нами!"
-                : "Үйрен. Дамы. Бізбен бірге табысқа жет!"}
+              Маркетинг әлемін қазақ тілінде меңгеріп, өз идеяңды цифрлық жобаға айналдыр.
             </p>
 
-            {/* Buttons */}
+            {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <Link
                 href="/login?tab=register"
-                className="px-6 py-3.5 rounded-2xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-sm shadow-lg shadow-blue-500/25 flex items-center gap-2.5 transition-all active:scale-95"
+                className="px-6 py-3.5 rounded-2xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-sm shadow-lg shadow-blue-500/30 flex items-center gap-2.5 transition-all active:scale-95"
               >
                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                   <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
                 </div>
-                <span>{isRu ? "Начать обучение" : "Оқуды бастау →"}</span>
+                <span>Оқуды бастау →</span>
               </Link>
 
               <a
-                href="#sections"
-                className="px-6 py-3.5 rounded-2xl bg-white/95 hover:bg-white text-slate-800 border border-slate-200 font-bold text-sm flex items-center gap-2 transition-all shadow-2xs backdrop-blur-xs"
+                href="#bilim"
+                className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-bold text-sm flex items-center gap-2 transition-all shadow-2xs"
               >
-                <span>{isRu ? "Узнать больше" : "Толығырақ білу"}</span>
+                <span>Платформамен танысу</span>
                 <ArrowDown className="w-4 h-4 text-slate-400" />
               </a>
             </div>
@@ -292,147 +163,353 @@ export function LandingView() {
       {/* ========================================================================= */}
       {/* 3. 4-STATS DIVIDER BAR                                                    */}
       {/* ========================================================================= */}
-      <section className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 md:p-6 shadow-xs">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x divide-slate-100 items-center">
-          {/* Stat 1: 500+ Активных учеников */}
+      <section className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 md:p-6 shadow-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-0 md:divide-x divide-slate-200 items-center">
+          {/* Stat 1 */}
           <div className="flex items-center gap-3.5 md:px-5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#1E5BF0] text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
+              <GraduationCap className="w-5 h-5" />
             </div>
-            <div>
-              <div className="text-base sm:text-lg font-black text-slate-900 leading-tight">500+</div>
-              <div className="text-[11px] text-slate-500 font-medium">
-                {isRu ? "Активных учеников" : "Белсенді оқушы"}
-              </div>
-            </div>
+            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+              10-сынып
+            </span>
           </div>
 
-          {/* Stat 2: 8 Образовательных разделов */}
+          {/* Stat 2 */}
           <div className="flex items-center gap-3.5 md:px-5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#1E5BF0] text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
               <BookOpen className="w-5 h-5" />
             </div>
-            <div>
-              <div className="text-base sm:text-lg font-black text-slate-900 leading-tight">8</div>
-              <div className="text-[11px] text-slate-500 font-medium">
-                {isRu ? "Образовательных разделов" : "Оқу бағыттары"}
-              </div>
-            </div>
+            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+              Қазақ тілі + маркетинг
+            </span>
           </div>
 
-          {/* Stat 3: 100% Возможность отслеживать прогресс */}
+          {/* Stat 3 */}
           <div className="flex items-center gap-3.5 md:px-5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#1E5BF0] text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
+              <Laptop className="w-5 h-5" />
+            </div>
+            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+              Практикалық оқу
+            </span>
+          </div>
+
+          {/* Stat 4 */}
+          <div className="flex items-center gap-3.5 md:px-5">
+            <div className="w-10 h-10 rounded-xl bg-[#1E5BF0] text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
               <Trophy className="w-5 h-5" />
             </div>
-            <div>
-              <div className="text-base sm:text-lg font-black text-slate-900 leading-tight">100%</div>
-              <div className="text-[11px] text-slate-500 font-medium">
-                {isRu ? "Возможность отслеживать прогресс" : "Прогресті бақылау мүмкіндігі"}
-              </div>
-            </div>
-          </div>
-
-          {/* Stat 4: Твой успех в наших руках! */}
-          <div className="flex items-center gap-3.5 md:px-5">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center shrink-0">
-              <Star className="w-5 h-5 fill-[#1E5BF0]" />
-            </div>
-            <div className="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
-              {isRu ? "Твой успех в наших руках!" : "Сенің табысың біздің қолымызда!"}
-            </div>
+            <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+              Жеке цифрлық портфолио
+            </span>
           </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. SECTION: «НАШИ РАЗДЕЛЫ» + TALL PROMO CARD                              */}
+      {/* 4. SECTION: «БІЛІМ АЛАҢЫ» (5 Cards)                                       */}
       {/* ========================================================================= */}
-      <section id="sections" className="space-y-4 scroll-mt-24">
-        {/* Header with Title and "Все разделы →" */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900">
-              {isRu ? "Наши разделы" : "Біздің бөлімдер"}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
-              {isRu
-                ? "8 ключевых направлений для всестороннего развития"
-                : "Жан-жақты дамуға арналған 8 негізгі бағыт"}
-            </p>
-          </div>
-          <Link
-            href="/bilim"
-            className="text-xs font-bold text-[#1E5BF0] hover:underline flex items-center gap-1"
-          >
-            <span>{isRu ? "Все разделы" : "Барлық бөлімдер"}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+      <section id="bilim" className="space-y-4 scroll-mt-24">
+        {/* Title with Vertical Blue Bar */}
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+            <span className="w-1.5 h-6 rounded-full bg-[#1E5BF0] inline-block" />
+            <span>Білім алаңы</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            Маркетинг саласындағы қазақ тілін тәжірибе арқылы меңгер
+          </p>
         </div>
 
-        {/* 2-Columns Layout: Left 8 Subject Cards (2x4) + Right Tall Promo Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          {/* Left: 8 Subject Cards Grid (8 cols) */}
-          <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
-            {subjects.map((s) => {
-              const Icon = s.icon;
-              return (
-                <Link
-                  key={s.id}
-                  href={s.href}
-                  className="p-4 rounded-2xl bg-white border border-slate-200/80 hover:border-[#1E5BF0] flex items-center justify-between gap-3 group transition-all shadow-2xs hover:shadow-md"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl ${s.color} flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors truncate">
-                        {isRu ? s.titleRu : s.titleKk}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 truncate font-medium">
-                        {isRu ? s.subRu : s.subKk}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-slate-50 group-hover:bg-[#1E5BF0] flex items-center justify-center text-slate-400 group-hover:text-white transition-all shrink-0">
-                    <ArrowRight className="w-3 h-3" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Right: Tall Promo Card (3 cols) */}
-          <div className="lg:col-span-3 p-6 rounded-3xl bg-gradient-to-b from-[#F0F5FE] to-[#E3EDFD] border border-blue-100 flex flex-col items-center text-center justify-between space-y-4 shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-500 flex items-center justify-center text-3xl shadow-sm">
-              🏆
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="text-base font-black text-slate-900 leading-snug">
-                {isRu ? "Начни свой путь к успеху!" : "Табысқа бастар жолды баста!"}
-              </h4>
-              <p className="text-[11px] text-slate-500 font-medium">
-                {isRu
-                  ? "Присоединяйся к QAZMARKET уже сегодня"
-                  : "QAZMARKET қатарына бүгін қосыл"}
+        {/* 5 Theory Cards Row — CRISP WHITE, NEVER DARK */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          {/* Card 1 */}
+          <Link
+            href="/bilim"
+            className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                📢
+              </div>
+              <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors leading-snug">
+                Маркетинг дегеніміз не?
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
+                Маркетингтің негізгі ұғымдары мен мақсаты.
               </p>
             </div>
+            <div className="pt-4 flex justify-end">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#1E5BF0] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 2 */}
+          <Link
+            href="/terminder"
+            className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                💻
+              </div>
+              <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors leading-snug">
+                Маркетинг терминдері
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
+                Негізгі терминдерді қазақ тілінде үйрен.
+              </p>
+            </div>
+            <div className="pt-4 flex justify-end">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#1E5BF0] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 3 */}
+          <Link
+            href="/bilim"
+            className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                📖
+              </div>
+              <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors leading-snug">
+                Қазақша кәсіби сөздік
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
+                Маркетингке қатысты негізгі сөздер топтамасы.
+              </p>
+            </div>
+            <div className="pt-4 flex justify-end">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#1E5BF0] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 4 */}
+          <Link
+            href="/jarname"
+            className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                💬
+              </div>
+              <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors leading-snug">
+                Жарнама тілінің ерекшеліктері
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
+                Жарнама мәтінінің ерекшеліктерін біл.
+              </p>
+            </div>
+            <div className="pt-4 flex justify-end">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#1E5BF0] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 5 */}
+          <Link
+            href="/smm"
+            className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1E5BF0] flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                📈
+              </div>
+              <h3 className="text-sm font-black text-slate-900 group-hover:text-[#1E5BF0] transition-colors leading-snug">
+                Маркетингтік коммуникация
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium">
+                Тиімді коммуникация жасауды үйрен.
+              </p>
+            </div>
+            <div className="pt-4 flex justify-end">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#1E5BF0] group-hover:text-white transition-all shadow-2xs">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. BOTTOM 3-BLOCK GRID                                                    */}
+      {/* ========================================================================= */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        {/* Block A: Біліміңді тәжірибеде сына (5 cols) */}
+        <div className="lg:col-span-5 p-5 rounded-3xl bg-white border border-slate-200/90 flex flex-col justify-between space-y-4 shadow-xs">
+          <div>
+            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <span className="w-1 h-5 rounded-full bg-[#1E5BF0] inline-block" />
+              <span>Біліміңді тәжірибеде сына</span>
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+              Интерактивті ойындар мен өзін-өзі бағалау қадамдары
+            </p>
+          </div>
+
+          {/* 4 Step Cards in a row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <Link
+              href="/game"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1E5BF0] flex items-center justify-center text-base shadow-2xs">
+                🧩
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Терминді сәйкестендір
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
 
             <Link
-              href="/login?tab=register"
-              className="w-full py-3 rounded-xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-xs shadow-md shadow-blue-500/25 flex items-center justify-center gap-1.5 transition-all"
+              href="/test"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
-              <span>{isRu ? "Зарегистрироваться" : "Тіркелу"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-base shadow-2xs">
+                📋
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Интерактивті тест
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+
+            <Link
+              href="/terminder"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base shadow-2xs">
+                🔍
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Қазақша баламасын тап
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+
+            <Link
+              href="/achievements"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-base shadow-2xs">
+                🛡️
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Өзіңді тексер
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Block B: Маркетолог рөлін байқап көр (4 cols) */}
+        <div className="lg:col-span-4 p-5 rounded-3xl bg-white border border-slate-200/90 flex flex-col justify-between space-y-4 shadow-xs">
+          <div>
+            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+              <span className="w-1 h-5 rounded-full bg-[#1E5BF0] inline-block" />
+              <span>Маркетолог рөлін байқап көр</span>
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+              4 негізгі кәсіби бағытты сынап көр
+            </p>
+          </div>
+
+          {/* 4 Role Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <Link
+              href="/bilim"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1E5BF0] flex items-center justify-center text-base shadow-2xs">
+                📢
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors">
+                Маркетолог
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+
+            <Link
+              href="/studio"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-base shadow-2xs">
+                ✒️
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors">
+                Копирайтер
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+
+            <Link
+              href="/brand"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-base shadow-2xs">
+                🎨
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Бренд-дизайнер
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+
+            <Link
+              href="/smm"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base shadow-2xs">
+                📈
+              </div>
+              <span className="text-[10px] font-extrabold text-slate-800 group-hover:text-[#1E5BF0] transition-colors leading-tight">
+                Жарнама маманы
+              </span>
+              <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-[#1E5BF0]" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Block C: Өз маркетингтік портфолиоңды жаса (3 cols, Royal Blue Gradient) */}
+        <div className="lg:col-span-3 p-6 rounded-3xl bg-gradient-to-br from-[#1E5BF0] to-[#2563EB] text-white flex flex-col justify-between space-y-4 shadow-xl shadow-blue-500/25 text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl shadow-md">
+            🏆
+          </div>
+
+          <div className="space-y-1">
+            <h4 className="text-base font-black text-white leading-tight">
+              Өз маркетингтік портфолиоңды жаса
+            </h4>
+            <p className="text-[11px] text-blue-100 font-medium">
+              Әр тапсырма — сенің жеке жетістігің
+            </p>
+          </div>
+
+          <div className="pt-1 flex justify-center">
+            <Link
+              href="/portfolio"
+              className="w-10 h-10 rounded-full bg-white text-[#1E5BF0] hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-md font-bold"
+              aria-label="Портфолиоға өту"
+            >
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. DARK NAVY FOOTER                                                       */}
+      {/* 6. DARK NAVY FOOTER                                                       */}
       {/* ========================================================================= */}
       <footer id="about" className="rounded-3xl bg-[#0B0F19] text-white px-6 md:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
         {/* Left: Brand Name */}
@@ -440,76 +517,45 @@ export function LandingView() {
           <div className="w-7 h-7 rounded-lg bg-[#1E5BF0] flex items-center justify-center text-white font-bold">
             <GraduationCap className="w-4 h-4" />
           </div>
-          <div>
-            <span className="font-extrabold text-white text-xs sm:text-sm">
-              QAZMARKET
-            </span>
-            <span className="text-[11px] text-slate-400 block sm:inline sm:ml-2">
-              {isRu ? "Образовательная платформа" : "Білім беру платформасы"}
-            </span>
-          </div>
+          <span className="font-extrabold text-white text-xs sm:text-sm">
+            QAZMARKET — Қазақ тіліндегі маркетинг зертханасы
+          </span>
         </div>
 
-        {/* Center: Footer Links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-slate-300 font-medium">
-          <a href="#about" className="hover:text-[#1E5BF0] transition-colors">
-            {isRu ? "О платформе" : "Платформа туралы"}
+        {/* Center: Social Icons */}
+        <div className="flex items-center gap-3 text-slate-400">
+          <a
+            href="https://t.me"
+            target="_blank"
+            rel="noreferrer"
+            className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
+            aria-label="Telegram"
+          >
+            <Send className="w-3.5 h-3.5" />
           </a>
-          <a href="mailto:support@qazmarket.kz" className="hover:text-[#1E5BF0] transition-colors">
-            {isRu ? "Поддержка" : "Қолдау"}
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noreferrer"
+            className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
+            aria-label="YouTube"
+          >
+            <Youtube className="w-3.5 h-3.5" />
           </a>
-          <Link href="/privacy" className="hover:text-[#1E5BF0] transition-colors">
-            {isRu ? "Политика конфиденциальности" : "Құпиялылық саясаты"}
-          </Link>
-          <a href="#about" className="hover:text-[#1E5BF0] transition-colors">
-            {isRu ? "Контакты" : "Байланыс"}
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noreferrer"
+            className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
+            aria-label="Instagram"
+          >
+            <Instagram className="w-3.5 h-3.5" />
           </a>
         </div>
 
-        {/* Right: Social Icons & Copyright */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-slate-400">
-            <a
-              href="https://t.me"
-              target="_blank"
-              rel="noreferrer"
-              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
-              aria-label="Telegram"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noreferrer"
-              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
-              aria-label="YouTube"
-            >
-              <Youtube className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noreferrer"
-              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
-              aria-label="GitHub"
-            >
-              <Github className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href="https://qazmarket.kz"
-              target="_blank"
-              rel="noreferrer"
-              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-[#1E5BF0] hover:text-white flex items-center justify-center transition-colors"
-              aria-label="Website"
-            >
-              <Globe className="w-3.5 h-3.5" />
-            </a>
-          </div>
-
-          <div className="text-[10px] text-slate-500 whitespace-nowrap">
-            © 2026 QAZMARKET. {isRu ? "Все права защищены." : "Барлық құқықтар қорғалған."}
-          </div>
+        {/* Right: Slogan */}
+        <div className="text-[11px] text-slate-400 font-semibold text-center sm:text-right">
+          Біліммен бірге — жарқын болашаққа!
         </div>
       </footer>
     </div>
