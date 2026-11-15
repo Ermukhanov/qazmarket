@@ -9,12 +9,13 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 
 export function AppLayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { user } = useApp();
+  const { user, isLoaded } = useApp();
 
   // Standalone public pages (Full-screen, NO sidebar, NO dashboard header)
   const isStandalone =
     pathname === "/landing" ||
     pathname === "/login" ||
+    (pathname === "/" && !isLoaded) ||   // While loading, show standalone (no sidebar flash)
     (pathname === "/" && !user);
 
   if (isStandalone) {

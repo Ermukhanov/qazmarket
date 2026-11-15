@@ -54,7 +54,7 @@ function LoginForm() {
       if (mode === "login") {
         const success = await login(cleanEmail, cleanPassword, role);
         if (success) {
-          window.location.href = role === "teacher" ? "/teacher" : "/";
+          window.location.href = role === "teacher" ? "/teacher" : "/bilim";
           return;
         } else {
           setErrorMsg(lang === "ru" ? "Кіру қатесі. Қайта байқап көріңіз." : "Кіру қатесі орын алды. Қайта көріңіз.");
@@ -63,7 +63,7 @@ function LoginForm() {
         const cleanName = name.trim() || cleanEmail.split("@")[0];
         const success = await register(cleanName, cleanEmail, cleanPassword, role, classCode);
         if (success) {
-          window.location.href = role === "teacher" ? "/teacher" : "/";
+          window.location.href = role === "teacher" ? "/teacher" : "/bilim";
           return;
         } else {
           setErrorMsg(lang === "ru" ? "Тіркелу қатесі орын алды." : "Тіркелу қатесі орын алды.");

@@ -110,6 +110,7 @@ export interface AdminSettings {
 
 interface AppState {
   user: User | null;
+  isLoaded: boolean;
   lang: Lang;
   theme: Theme;
   progress: StudentProgress;
@@ -614,6 +615,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         user,
+        isLoaded,
         lang,
         theme,
         progress,
