@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useApp } from "@/store/app-context";
 import {
   GraduationCap,
@@ -20,20 +21,21 @@ import {
 } from "lucide-react";
 
 export function OnboardingModal() {
+  const pathname = usePathname();
   const { user, addXp } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [selectedGoal, setSelectedGoal] = useState("portfolio");
 
   useEffect(() => {
-    // Only show if user is logged in and hasn't completed onboarding yet
-    if (user) {
+    // Only show if user is logged in, NOT on the login/landing page, and hasn't completed onboarding yet
+    if (user && pathname !== "/login" && pathname !== "/landing") {
       const completed = localStorage.getItem("qazmarket_onboarding_done");
       if (!completed) {
         setIsOpen(true);
       }
     }
-  }, [user]);
+  }, [user, pathname]);
 
   const handleFinish = () => {
     localStorage.setItem("qazmarket_onboarding_done", "true");

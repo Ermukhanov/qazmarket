@@ -26,12 +26,6 @@ export function AiChatWidget() {
   const t = translations[lang] || translations.kk;
   const pathname = usePathname();
 
-  // 1. CHATBOT IS ONLY AVAILABLE ON THE MAIN DASHBOARD FOR AUTHENTICATED USERS
-  // Hide completely on landing, login, or when user is not logged in!
-  if (!user || pathname === "/landing" || pathname === "/login" || !adminSettings.aiChatEnabled) {
-    return null;
-  }
-
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -68,6 +62,12 @@ export function AiChatWidget() {
       console.error(e);
     }
   }, []);
+
+  // CHATBOT IS ONLY AVAILABLE ON THE MAIN DASHBOARD FOR AUTHENTICATED USERS
+  // Hide completely on landing, login, or when user is not logged in!
+  if (!user || pathname === "/landing" || pathname === "/login" || !adminSettings?.aiChatEnabled) {
+    return null;
+  }
 
   if (!adminSettings.aiChatEnabled) {
     return null;
