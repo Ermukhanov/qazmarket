@@ -15,15 +15,8 @@ export async function POST(req: Request) {
   try {
     const { message, context, user } = await req.json();
 
-    // 1. AUTH CHECK: ONLY LOGGED-IN USERS CAN USE THE CHATBOT
-    if (!user || !user.email) {
-      return NextResponse.json(
-        { error: "Чатботты пайдалану үшін алдымен жүйеге кіріңіз.", redirect: "/login" },
-        { status: 401 }
-      );
-    }
-
-    const ip = req.headers.get("x-forwarded-for") || user.email || "local_user";
+    const userEmail = user?.email || "student@qazmarket.kz";
+    const ip = req.headers.get("x-forwarded-for") || userEmail;
     const today = new Date().toISOString().split("T")[0];
 
     // Rate Limiting: 25 messages per day to prevent token exhaustion
@@ -55,7 +48,7 @@ export async function POST(req: Request) {
 
     if (apiKey) {
       try {
-        // Use lightweight Claude Haiku with strict token cap (max_tokens: 180) to minimize cost
+        // Use fast, capable Claude Haiku 4.5
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -64,8 +57,8 @@ export async function POST(req: Request) {
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 180,
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 600,
             system: dynamicSystemPrompt,
             messages: [{ role: "user", content: message }],
           }),
@@ -77,6 +70,9 @@ export async function POST(req: Request) {
           if (replyText) {
             return NextResponse.json({ reply: replyText });
           }
+        } else {
+          const errText = await response.text();
+          console.error("Claude API error response:", response.status, errText);
         }
       } catch (e) {
         console.error("AI service error, using local expert engine:", e);
