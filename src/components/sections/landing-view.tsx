@@ -19,6 +19,10 @@ import { useApp } from "@/store/app-context";
 export function LandingView() {
   const { user } = useApp();
 
+  // Route protection helper for landing page: unauthenticated users are guided to login
+  const getActionHref = (target: string) => (user ? target : "/login");
+  const getRegisterHref = () => (user ? "/portfolio" : "/login?tab=register");
+
   return (
     <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto pb-10 font-sans select-none text-left">
       {/* ========================================================================= */}
@@ -136,7 +140,7 @@ export function LandingView() {
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <Link
-                href="/login?tab=register"
+                href={getActionHref("/bilim")}
                 className="px-6 py-3.5 rounded-2xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-sm shadow-lg shadow-blue-500/30 flex items-center gap-2.5 transition-all active:scale-95"
               >
                 <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
@@ -226,7 +230,7 @@ export function LandingView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
           {/* Card 1 */}
           <Link
-            href="/bilim"
+            href={getActionHref("/bilim")}
             className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
           >
             <div className="space-y-3">
@@ -249,7 +253,7 @@ export function LandingView() {
 
           {/* Card 2 */}
           <Link
-            href="/terminder"
+            href={getActionHref("/terminder")}
             className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
           >
             <div className="space-y-3">
@@ -272,7 +276,7 @@ export function LandingView() {
 
           {/* Card 3 */}
           <Link
-            href="/bilim"
+            href={getActionHref("/bilim")}
             className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
           >
             <div className="space-y-3">
@@ -295,7 +299,7 @@ export function LandingView() {
 
           {/* Card 4 */}
           <Link
-            href="/jarname"
+            href={getActionHref("/jarname")}
             className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
           >
             <div className="space-y-3">
@@ -318,7 +322,7 @@ export function LandingView() {
 
           {/* Card 5 */}
           <Link
-            href="/smm"
+            href={getActionHref("/smm")}
             className="p-5 rounded-2xl bg-white hover:bg-blue-50/30 border border-slate-200/90 hover:border-blue-400 flex flex-col justify-between group transition-all shadow-xs hover:shadow-md"
           >
             <div className="space-y-3">
@@ -360,7 +364,7 @@ export function LandingView() {
           {/* 4 Step Cards in a row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
             <Link
-              href="/game"
+              href={getActionHref("/game")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1E5BF0] flex items-center justify-center text-base shadow-2xs">
@@ -373,7 +377,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/test"
+              href={getActionHref("/test")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-base shadow-2xs">
@@ -386,7 +390,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/terminder"
+              href={getActionHref("/terminder")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-base shadow-2xs">
@@ -399,7 +403,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/achievements"
+              href={getActionHref("/achievements")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center text-base shadow-2xs">
@@ -428,7 +432,7 @@ export function LandingView() {
           {/* 4 Role Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
             <Link
-              href="/bilim"
+              href={getActionHref("/bilim")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#1E5BF0] flex items-center justify-center text-base shadow-2xs">
@@ -441,7 +445,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/studio"
+              href={getActionHref("/studio")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-base shadow-2xs">
@@ -454,7 +458,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/brand"
+              href={getActionHref("/brand")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-base shadow-2xs">
@@ -467,7 +471,7 @@ export function LandingView() {
             </Link>
 
             <Link
-              href="/smm"
+              href={getActionHref("/smm")}
               className="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-400 flex flex-col items-center text-center justify-between space-y-2 group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-base shadow-2xs">
@@ -498,7 +502,7 @@ export function LandingView() {
 
           <div className="pt-1 flex justify-center">
             <Link
-              href="/portfolio"
+              href={getRegisterHref()}
               className="w-10 h-10 rounded-full bg-white text-[#1E5BF0] hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-md font-bold"
               aria-label="Портфолиоға өту"
             >

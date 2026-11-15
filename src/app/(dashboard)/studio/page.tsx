@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
 import { checkSloganQuality } from "@/lib/utils";
@@ -22,7 +23,8 @@ import {
 } from "lucide-react";
 
 export default function StudioPage() {
-  const { lang, saveSlogan, saveAdText } = useApp();
+  const router = useRouter();
+  const { user, lang, saveSlogan, saveAdText } = useApp();
   const t = getT(lang);
 
   const [activeTab, setActiveTab] = useState<"slogan" | "adText">("slogan");
@@ -54,6 +56,10 @@ export default function StudioPage() {
   };
 
   const handleSaveSlogan = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     if (!slogan.trim()) return;
     saveSlogan(slogan, brandName, quality.score);
     setSloganSaved(true);
@@ -61,6 +67,10 @@ export default function StudioPage() {
   };
 
   const handleSaveAdText = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     if (!adHeadline.trim()) return;
     saveAdText({
       headline: adHeadline,

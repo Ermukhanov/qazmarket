@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
 import {
@@ -17,7 +18,8 @@ import {
 } from "lucide-react";
 
 export default function BrandStudioPage() {
-  const { lang, progress, updateProgress, addXp } = useApp();
+  const router = useRouter();
+  const { user, lang, progress, updateProgress, addXp } = useApp();
   const t = getT(lang);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +83,10 @@ export default function BrandStudioPage() {
   };
 
   const handleSaveToPortfolio = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     if (!brandName.trim()) return;
 
     const brandCard = {

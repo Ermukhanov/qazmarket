@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
 import { curriculumLessons, CurriculumLesson, CurriculumTask } from "@/data/curriculum-lessons";
@@ -30,7 +31,8 @@ import {
 } from "lucide-react";
 
 export default function BilimPage() {
-  const { lang, progress, addXp, saveLessonSubmission } = useApp();
+  const router = useRouter();
+  const { user, lang, progress, addXp, saveLessonSubmission } = useApp();
   const t = getT(lang);
 
   // Active view: catalog or lesson player
@@ -98,6 +100,12 @@ export default function BilimPage() {
 
   // Handle open player
   const handleOpenLesson = (lesson: CurriculumLesson) => {
+    // If not logged in, prompt user to login/register so their work is saved
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     setActiveLessonId(lesson.id);
     setPlayerStep("objectives");
     setActiveTaskIdx(0);

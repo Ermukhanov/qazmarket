@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/store/app-context";
 import { getT } from "@/lib/i18n";
 import { marketingTerms } from "@/data/terms";
@@ -26,7 +27,8 @@ import {
 } from "lucide-react";
 
 export default function GamePage() {
-  const { lang, addXp, updateProgress, progress } = useApp();
+  const router = useRouter();
+  const { user, lang, addXp, updateProgress, progress } = useApp();
   const t = getT(lang);
 
   const [activeTab, setActiveTab] = useState<"terms" | "quiz" | "cases">("terms");
@@ -42,6 +44,10 @@ export default function GamePage() {
   const [termSearchQuery, setTermSearchQuery] = useState("");
 
   const startTermsGame = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     // Pick 8 random terms from the 35+ bank
     const shuffled = [...marketingTerms].sort(() => 0.5 - Math.random()).slice(0, 8);
     setTermPairs(shuffled.map((t) => ({ id: t.id, en: t.english, kk: t.kazakh })));
@@ -102,6 +108,10 @@ export default function GamePage() {
   const [quizFinished, setQuizFinished] = useState(false);
 
   const startQuiz = (mode: "10" | "40") => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     setQuizMode(mode);
     const count = mode === "10" ? 10 : Math.min(40, questionsBank.length);
     const selected = [...questionsBank].sort(() => 0.5 - Math.random()).slice(0, count);

@@ -168,13 +168,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem("qazmarket_user");
+      const savedUserStr = localStorage.getItem("qazmarket_user");
       const savedLang = localStorage.getItem("qazmarket_lang") as Lang | null;
       const savedTheme = localStorage.getItem("qazmarket_theme") as Theme | null;
-      const savedProgress = localStorage.getItem("qazmarket_progress");
       const savedAdmin = localStorage.getItem("qazmarket_admin_settings");
 
-      if (savedUser) setUser(JSON.parse(savedUser));
+      let loadedUser: User | null = null;
+      if (savedUserStr) {
+        loadedUser = JSON.parse(savedUserStr);
+        setUser(loadedUser);
+      } else {
+        setUser(null);
+      }
+
       if (savedLang && (savedLang === "kk" || savedLang === "ru")) setLangState(savedLang);
       if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
         setThemeState(savedTheme);
@@ -182,7 +188,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         document.documentElement.setAttribute("data-theme", "light");
       }
-      if (savedProgress) setProgress(JSON.parse(savedProgress));
+
+      // Load user-specific progress or default 0 XP
+      if (loadedUser?.email) {
+        const savedProgress = localStorage.getItem(`qazmarket_progress_${loadedUser.email.toLowerCase()}`) || localStorage.getItem("qazmarket_progress");
+        if (savedProgress) setProgress(JSON.parse(savedProgress));
+      } else {
+        setProgress(defaultProgress);
+      }
+
       if (savedAdmin) setAdminSettings(JSON.parse(savedAdmin));
     } catch (e) {
       console.error("Failed to load state from localStorage:", e);
@@ -208,11 +222,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoaded) return;
     try {
-      localStorage.setItem("qazmarket_progress", JSON.stringify(progress));
+      if (user?.email) {
+        localStorage.setItem(`qazmarket_progress_${user.email.toLowerCase()}`, JSON.stringify(progress));
+      }
     } catch (e) {
       console.error(e);
     }
-  }, [progress, isLoaded]);
+  }, [progress, user, isLoaded]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -239,6 +255,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addXp = (amount: number, reason: string = "Тапсырма орындалды") => {
+    // Only authenticated users can earn and accumulate real XP!
+    if (!user) return;
+
     setProgress((prev) => {
       const newXp = prev.xp + amount;
       const today = new Date().toISOString().split("T")[0];
@@ -271,6 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveBrand = (brandData: Omit<BrandCard, "id" | "date">) => {
+    if (!user) return;
     const newBrand: BrandCard = {
       ...brandData,
       id: "brand_" + Date.now(),
@@ -289,6 +309,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const savePost = (postData: Omit<AdPost, "id" | "date">) => {
+    if (!user) return;
     const newPost: AdPost = {
       ...postData,
       id: "post_" + Date.now(),
@@ -307,6 +328,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveAdText = (adTextData: Omit<AdText6, "id" | "date">) => {
+    if (!user) return;
     const newAdText: AdText6 = {
       ...adTextData,
       id: "adtext_" + Date.now(),
@@ -325,6 +347,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveSeoProject = (seoData: Omit<SeoProject, "id" | "date">) => {
+    if (!user) return;
     const newProject: SeoProject = {
       ...seoData,
       id: "seo_" + Date.now(),
@@ -343,6 +366,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveSlogan = (text: string, brandName: string, score: number) => {
+    if (!user) return;
     const newSlogan = {
       id: "slogan_" + Date.now(),
       text,
@@ -363,6 +387,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveLessonSubmission = (submission: LessonSubmission) => {
+    if (!user) return;
     setProgress((prev) => {
       const existingSubs = prev.lessonSubmissions || [];
       const updatedSubs = [submission, ...existingSubs.filter((s) => s.lessonId !== submission.lessonId)];
@@ -390,6 +415,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const unlockBadge = (badgeId: string) => {
+    if (!user) return;
     setProgress((prev) => {
       if (prev.badges.includes(badgeId)) return prev;
       return { ...prev, badges: [...prev.badges, badgeId] };
@@ -400,29 +426,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAdminSettings((prev) => ({ ...prev, ...settings }));
   };
 
-  const login = (email: string, password: string, overrideRole?: "student" | "teacher" | "admin"): boolean => {
+  const login = (email: string, _password: string, overrideRole?: "student" | "teacher" | "admin"): boolean => {
     if (!email) return false;
-    let role: "student" | "teacher" | "admin" = overrideRole || "student";
-    let name = "Әлихан Нұрланұлы";
+    const normalizedEmail = email.trim().toLowerCase();
 
-    if (email.includes("admin")) {
-      role = "admin";
-      name = "Мектеп Әкімшісі";
-    } else if (email.includes("teacher") || email.includes("ustaz")) {
-      role = "teacher";
-      name = "Сарсенова Ақкүміс Піржанқызы";
+    // Check if user was registered previously in localStorage
+    let savedUsers: Record<string, { name: string; role: "student" | "teacher" | "admin"; classCode: string }> = {};
+    try {
+      savedUsers = JSON.parse(localStorage.getItem("qazmarket_users_db") || "{}");
+    } catch (e) {
+      console.error(e);
     }
 
-    const newUser: User = {
+    const existing = savedUsers[normalizedEmail];
+    let role: "student" | "teacher" | "admin" = existing?.role || overrideRole || (normalizedEmail.includes("teacher") ? "teacher" : "student");
+    let name = existing?.name;
+
+    if (!name) {
+      if (normalizedEmail.includes("teacher")) {
+        name = "Сарсенова Ақкүміс Піржанқызы";
+      } else {
+        // Derive clean name from email handle (e.g. "aidar.serik" -> "Айдар Серік")
+        const handle = normalizedEmail.split("@")[0].replace(/[._-]/g, " ");
+        name = handle.charAt(0).toUpperCase() + handle.slice(1);
+      }
+    }
+
+    const loggedUser: User = {
       id: "usr_" + Date.now(),
       name,
-      email,
+      email: normalizedEmail,
       role,
-      classCode: "10A-MARKET",
+      classCode: existing?.classCode || "10A-MARKET",
       school: "№6 Хромтау гимназиясы",
       createdAt: new Date().toISOString(),
     };
-    setUser(newUser);
+
+    // Load their specific progress or clean start
+    try {
+      const userProgressStr = localStorage.getItem(`qazmarket_progress_${normalizedEmail}`);
+      if (userProgressStr) {
+        setProgress(JSON.parse(userProgressStr));
+      } else {
+        setProgress(defaultProgress);
+      }
+    } catch (e) {
+      setProgress(defaultProgress);
+    }
+
+    setUser(loggedUser);
     return true;
   };
 
@@ -433,21 +485,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     role: "student" | "teacher" | "admin",
     classCode: string
   ): boolean => {
+    const normalizedEmail = email.trim().toLowerCase();
     const newUser: User = {
       id: "usr_" + Date.now(),
-      name,
-      email,
+      name: name.trim(),
+      email: normalizedEmail,
       role,
-      classCode: classCode.toUpperCase(),
+      classCode: (classCode || "10A-MARKET").toUpperCase(),
       school: "№6 Хромтау гимназиясы",
       createdAt: new Date().toISOString(),
     };
+
+    // Save into registered users database in localStorage
+    try {
+      const savedUsers = JSON.parse(localStorage.getItem("qazmarket_users_db") || "{}");
+      savedUsers[normalizedEmail] = {
+        name: newUser.name,
+        role: newUser.role,
+        classCode: newUser.classCode,
+      };
+      localStorage.setItem("qazmarket_users_db", JSON.stringify(savedUsers));
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Fresh progress for newly registered user (0 XP)
+    setProgress(defaultProgress);
+    try {
+      localStorage.setItem(`qazmarket_progress_${normalizedEmail}`, JSON.stringify(defaultProgress));
+    } catch (e) {
+      console.error(e);
+    }
+
     setUser(newUser);
     return true;
   };
 
   const logout = () => {
     setUser(null);
+    setProgress(defaultProgress);
+    try {
+      localStorage.removeItem("qazmarket_user");
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
