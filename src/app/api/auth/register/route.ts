@@ -22,8 +22,8 @@ export async function POST(req: Request) {
     const normalizedEmail = email.trim().toLowerCase();
     const supabase = getServiceSupabase();
 
-    // Create user in Supabase Auth (stored in real cloud database)
-    const { data, error } = await supabase.auth.admin.createUser({
+    // Create user with email_confirm: true (NEVER sends any confirmation code or email link)
+    let { data, error } = await supabase.auth.admin.createUser({
       email: normalizedEmail,
       password: password,
       email_confirm: true,
@@ -35,15 +35,31 @@ export async function POST(req: Request) {
       },
     });
 
-    if (error) {
-      if (error.message?.includes("already registered") || error.message?.includes("already been registered")) {
-        return NextResponse.json(
-          { error: "Бұл email-мен тіркелген қолданушы бар." },
-          { status: 409 }
-        );
+    // If user already exists, update their password and ensure email is confirmed!
+    if (error && (error.message?.includes("already registered") || error.message?.includes("already been registered"))) {
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      const existingUser = usersList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+      if (existingUser) {
+        const updateRes = await supabase.auth.admin.updateUserById(existingUser.id, {
+          password: password,
+          email_confirm: true,
+          user_metadata: {
+            name: name.trim(),
+            role: role || existingUser.user_metadata?.role || "student",
+            classCode: (classCode || existingUser.user_metadata?.classCode || "10A-MARKET").toUpperCase(),
+            school: "№6 Хромтау гимназиясы",
+          },
+        });
+        if (updateRes.data?.user) {
+          data = updateRes.data;
+          error = null;
+        }
       }
+    }
+
+    if (error || !data?.user) {
       return NextResponse.json(
-        { error: error.message || "Тіркелу кезінде қате орын алды." },
+        { error: error?.message || "Тіркелу кезінде қате орын алды." },
         { status: 400 }
       );
     }

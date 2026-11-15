@@ -3,7 +3,7 @@ import { getServiceSupabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, role } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -15,13 +15,70 @@ export async function POST(req: Request) {
     const normalizedEmail = email.trim().toLowerCase();
     const supabase = getServiceSupabase();
 
-    // Authenticate with Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // 1. Try signing in directly with password
+    let { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password,
     });
 
-    if (error || !data.user) {
+    // 2. If blocked because email was not confirmed, AUTO-CONFIRM IT IMMEDIATELY (no email codes!)
+    if (error && (error.message.includes("Email not confirmed") || error.message.includes("email_not_confirmed"))) {
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      const existingUser = usersList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+      if (existingUser) {
+        await supabase.auth.admin.updateUserById(existingUser.id, {
+          email_confirm: true,
+        });
+        // Retry sign in immediately
+        const retry = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
+        if (retry.data?.user) {
+          data = retry.data;
+          error = null;
+        }
+      }
+    }
+
+    // 3. If user not found, auto-create them seamlessly with email_confirm: true so they are never blocked
+    if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
+      const { data: usersList } = await supabase.auth.admin.listUsers();
+      const existingUser = usersList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+
+      if (!existingUser) {
+        const handle = normalizedEmail.split("@")[0].replace(/[._-]/g, " ");
+        const defaultName = normalizedEmail.includes("teacher")
+          ? "Сарсенова Ақкүміс Піржанқызы"
+          : handle.charAt(0).toUpperCase() + handle.slice(1);
+        const resolvedRole = role || (normalizedEmail.includes("teacher") ? "teacher" : "student");
+
+        const createRes = await supabase.auth.admin.createUser({
+          email: normalizedEmail,
+          password: password,
+          email_confirm: true,
+          user_metadata: {
+            name: defaultName,
+            role: resolvedRole,
+            classCode: "10A-MARKET",
+            school: "№6 Хромтау гимназиясы",
+          },
+        });
+
+        if (createRes.data?.user) {
+          const retryLogin = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+          if (retryLogin.data?.user) {
+            data = retryLogin.data;
+            error = null;
+          }
+        }
+      }
+    }
+
+    if (error || !data?.user) {
       return NextResponse.json(
         { error: "Email немесе құпия сөз қате." },
         { status: 401 }
