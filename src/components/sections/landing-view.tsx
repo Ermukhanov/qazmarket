@@ -16,9 +16,9 @@ import { useApp } from "@/store/app-context";
 export function LandingView() {
   const { user, logout } = useApp();
 
-  // Route protection helper for landing page: unauthenticated users are guided to login
-  const getActionHref = (target: string) => (user ? target : "/login");
-  const getRegisterHref = () => (user ? "/portfolio" : "/login?tab=register");
+  // Direct access: allow all visitors to explore the course and tools directly
+  const getActionHref = (target: string) => target;
+  const getRegisterHref = () => (user ? "/portfolio" : "/bilim");
 
   return (
     <div className="space-y-6 md:space-y-8 max-w-7xl mx-auto pb-10 font-sans select-none text-left">

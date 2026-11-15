@@ -228,6 +228,15 @@ function LoginForm() {
           </span>
           {!isLoading && <ArrowRight className="w-4 h-4" />}
         </button>
+
+        <div className="pt-2 text-center">
+          <Link
+            href="/bilim"
+            className="text-xs font-bold text-slate-500 hover:text-[#1E5BF0] transition-colors underline decoration-dotted"
+          >
+            {lang === "ru" ? "Изучать материалы без входа →" : "Тіркелусіз білім алуды бастау →"}
+          </Link>
+        </div>
       </form>
     </div>
   );
