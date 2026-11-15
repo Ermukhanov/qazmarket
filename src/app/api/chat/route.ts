@@ -55,7 +55,9 @@ export async function POST(req: Request) {
 Нұсқаулық: Оқушыға дайын жауапты тұтастай жазып бермеңіз! Осы дескрипторларға сәйкес қалай ойлану керектігіне бағыт, ұлттық брендтерден мысалдар мен сөздік көмек көрсетіңіз.`;
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey =
+      process.env.ANTHROPIC_API_KEY ||
+      "";
 
     if (apiKey) {
       try {
@@ -67,8 +69,8 @@ export async function POST(req: Request) {
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-3-5-haiku-latest",
-            max_tokens: 600,
+            model: "claude-haiku-5-5",
+            max_tokens: 800,
             system: dynamicSystemPrompt,
             messages: [{ role: "user", content: message }],
           }),
@@ -76,8 +78,13 @@ export async function POST(req: Request) {
 
         if (response.ok) {
           const data = await response.json();
-          const replyText = data.content?.[0]?.text || "Жауап алу мүмкін болмады.";
-          return NextResponse.json({ reply: replyText });
+          const replyText = data.content?.[0]?.text;
+          if (replyText) {
+            return NextResponse.json({ reply: replyText });
+          }
+        } else {
+          const errData = await response.json().catch(() => null);
+          console.warn("Anthropic API non-ok status:", response.status, errData);
         }
       } catch (e) {
         console.error("Anthropic API error, using fallback expert:", e);
