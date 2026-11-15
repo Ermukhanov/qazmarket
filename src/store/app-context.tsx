@@ -454,9 +454,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: data.user.createdAt || new Date().toISOString(),
       };
 
-      // Load progress from localStorage for this user
+      // Synchronously save user in localStorage before setting state
       try {
-        const userProgressStr = localStorage.getItem(`qazmarket_progress_${loggedUser.email}`);
+        localStorage.setItem("qazmarket_user", JSON.stringify(loggedUser));
+        const userProgressStr = localStorage.getItem(`qazmarket_progress_${loggedUser.email.toLowerCase()}`);
         if (userProgressStr) {
           setProgress(JSON.parse(userProgressStr));
         } else {
@@ -500,6 +501,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     try {
+      localStorage.setItem("qazmarket_user", JSON.stringify(loggedUser));
       const userProgressStr = localStorage.getItem(`qazmarket_progress_${normalizedEmail}`);
       if (userProgressStr) {
         setProgress(JSON.parse(userProgressStr));
@@ -548,6 +550,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setProgress(defaultProgress);
       try {
+        localStorage.setItem("qazmarket_user", JSON.stringify(newUser));
         localStorage.setItem(`qazmarket_progress_${normalizedEmail}`, JSON.stringify(defaultProgress));
       } catch (e) {
         console.error(e);
@@ -588,6 +591,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     setProgress(defaultProgress);
     try {
+      localStorage.setItem("qazmarket_user", JSON.stringify(newUser));
       localStorage.setItem(`qazmarket_progress_${normalizedEmail}`, JSON.stringify(defaultProgress));
     } catch (e) {
       console.error(e);

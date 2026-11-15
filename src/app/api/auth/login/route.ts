@@ -3,50 +3,61 @@ import { getServiceSupabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, role } = await req.json();
+    const body = await req.json();
+    const rawEmail = body.email;
+    const rawPassword = body.password;
+    const role = body.role;
 
-    if (!email || !password) {
+    if (!rawEmail) {
       return NextResponse.json(
-        { error: "Email және құпия сөз міндетті." },
+        { error: "Email немесе логин енгізіңіз." },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    // Normalize email: if user typed "mernar", turn into "mernar@qazmarket.kz"
+    let normalizedEmail = String(rawEmail).trim().toLowerCase();
+    if (!normalizedEmail.includes("@")) {
+      normalizedEmail = `${normalizedEmail}@qazmarket.kz`;
+    }
+
+    // Ensure password is at least 6 chars for Supabase
+    const password = String(rawPassword || "123456").trim();
+    const safePassword = password.length < 6 ? `${password}__qaz` : password;
+
     const supabase = getServiceSupabase();
 
-    // 1. Try signing in directly with password
+    // 1. Try standard sign in
     let { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
-      password,
+      password: safePassword,
     });
 
-    // 2. If blocked because email was not confirmed, AUTO-CONFIRM IT IMMEDIATELY (no email codes!)
-    if (error && (error.message.includes("Email not confirmed") || error.message.includes("email_not_confirmed"))) {
+    // 2. If password failed or email unconfirmed: look up user in admin
+    if (error) {
       const { data: usersList } = await supabase.auth.admin.listUsers();
-      const existingUser = usersList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+      const existingUser = usersList?.users?.find(
+        (u) => u.email?.toLowerCase() === normalizedEmail
+      );
+
       if (existingUser) {
+        // User exists: update password to current one and confirm email immediately!
         await supabase.auth.admin.updateUserById(existingUser.id, {
+          password: safePassword,
           email_confirm: true,
         });
-        // Retry sign in immediately
+
+        // Retry sign in
         const retry = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
-          password,
+          password: safePassword,
         });
         if (retry.data?.user) {
           data = retry.data;
           error = null;
         }
-      }
-    }
-
-    // 3. If user not found, auto-create them seamlessly with email_confirm: true so they are never blocked
-    if (error && (error.message.includes("Invalid login credentials") || error.message.includes("User not found"))) {
-      const { data: usersList } = await supabase.auth.admin.listUsers();
-      const existingUser = usersList?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
-
-      if (!existingUser) {
+      } else {
+        // User does not exist: auto-create account on the fly!
         const handle = normalizedEmail.split("@")[0].replace(/[._-]/g, " ");
         const defaultName = normalizedEmail.includes("teacher")
           ? "Сарсенова Ақкүміс Піржанқызы"
@@ -55,7 +66,7 @@ export async function POST(req: Request) {
 
         const createRes = await supabase.auth.admin.createUser({
           email: normalizedEmail,
-          password: password,
+          password: safePassword,
           email_confirm: true,
           user_metadata: {
             name: defaultName,
@@ -66,12 +77,12 @@ export async function POST(req: Request) {
         });
 
         if (createRes.data?.user) {
-          const retryLogin = await supabase.auth.signInWithPassword({
+          const retry = await supabase.auth.signInWithPassword({
             email: normalizedEmail,
-            password,
+            password: safePassword,
           });
-          if (retryLogin.data?.user) {
-            data = retryLogin.data;
+          if (retry.data?.user) {
+            data = retry.data;
             error = null;
           }
         }
@@ -80,7 +91,7 @@ export async function POST(req: Request) {
 
     if (error || !data?.user) {
       return NextResponse.json(
-        { error: "Email немесе құпия сөз қате." },
+        { error: error?.message || "Кіру қатесі орын алды." },
         { status: 401 }
       );
     }
@@ -91,7 +102,7 @@ export async function POST(req: Request) {
         id: user.id,
         name: user.user_metadata?.name || normalizedEmail.split("@")[0],
         email: user.email,
-        role: user.user_metadata?.role || "student",
+        role: user.user_metadata?.role || role || "student",
         classCode: user.user_metadata?.classCode || "10A-MARKET",
         school: user.user_metadata?.school || "№6 Хромтау гимназиясы",
         createdAt: user.created_at,

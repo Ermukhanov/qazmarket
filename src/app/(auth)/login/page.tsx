@@ -41,49 +41,36 @@ function LoginForm() {
     setErrorMsg("");
     setIsLoading(true);
 
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim() || "123456";
+
+    if (!cleanEmail) {
+      setErrorMsg(lang === "ru" ? "Введите email или логин" : "Email немесе логин енгізіңіз");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       if (mode === "login") {
-        if (!email.trim()) {
-          setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
-          setIsLoading(false);
-          return;
-        }
-        if (!password.trim()) {
-          setErrorMsg(lang === "ru" ? "Введите пароль" : "Құпия сөзді енгізіңіз");
-          setIsLoading(false);
-          return;
-        }
-        const success = await login(email, password, role);
+        const success = await login(cleanEmail, cleanPassword, role);
         if (success) {
-          router.push(role === "student" ? "/" : "/teacher");
+          window.location.href = role === "teacher" ? "/teacher" : "/";
+          return;
         } else {
-          setErrorMsg(lang === "ru" ? "Неверный email или пароль" : "Email немесе құпия сөз қате");
+          setErrorMsg(lang === "ru" ? "Кіру қатесі. Қайта байқап көріңіз." : "Кіру қатесі орын алды. Қайта көріңіз.");
         }
       } else {
-        if (!name.trim()) {
-          setErrorMsg(lang === "ru" ? "Введите ваше имя" : "Аты-жөніңізді енгізіңіз");
-          setIsLoading(false);
-          return;
-        }
-        if (!email.trim()) {
-          setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
-          setIsLoading(false);
-          return;
-        }
-        if (!password.trim()) {
-          setErrorMsg(lang === "ru" ? "Введите пароль" : "Құпия сөзді енгізіңіз");
-          setIsLoading(false);
-          return;
-        }
-        const success = await register(name, email, password, role, classCode);
+        const cleanName = name.trim() || cleanEmail.split("@")[0];
+        const success = await register(cleanName, cleanEmail, cleanPassword, role, classCode);
         if (success) {
-          router.push(role === "student" ? "/" : "/teacher");
+          window.location.href = role === "teacher" ? "/teacher" : "/";
+          return;
         } else {
-          setErrorMsg(lang === "ru" ? "Ошибка регистрации" : "Тіркелу қатесі");
+          setErrorMsg(lang === "ru" ? "Тіркелу қатесі орын алды." : "Тіркелу қатесі орын алды.");
         }
       }
-    } catch (err) {
-      setErrorMsg(lang === "ru" ? "Ошибка сети" : "Желі қатесі");
+    } catch (err: any) {
+      setErrorMsg(err?.message || (lang === "ru" ? "Ошибка сети" : "Желі қатесі"));
     } finally {
       setIsLoading(false);
     }
@@ -201,14 +188,15 @@ function LoginForm() {
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
-            Email
+            {lang === "ru" ? "Email или логин" : "Email немесе логин"}
           </label>
           <input
-            type="email"
+            type="text"
+            inputMode="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="student@mektep.kz"
+            placeholder={lang === "ru" ? "Например: aidar или student@mail.kz" : "Мысалы: aidar немесе student@mail.kz"}
             className="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1E5BF0] focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -219,10 +207,9 @@ function LoginForm() {
           </label>
           <input
             type="password"
-            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder="•••••••• (мысалы: 123456)"
             className="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1E5BF0] focus:ring-2 focus:ring-blue-100"
           />
         </div>
