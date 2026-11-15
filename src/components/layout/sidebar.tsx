@@ -62,15 +62,15 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="p-6 border-b border-[var(--border-color)]">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform duration-200">
-            QM
+          <div className="w-11 h-11 rounded-2xl bg-[#1E5BF0] flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+            <GraduationCap className="w-6 h-6" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-lg tracking-tight text-[var(--fg)]">
+              <span className="font-black text-lg tracking-tight text-[var(--fg)]">
                 {t.appName}
               </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-purple-500/15 text-purple-400 border border-purple-500/20">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-500/15 text-[#1E5BF0] border border-blue-500/20">
                 10-сынып
               </span>
             </div>

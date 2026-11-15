@@ -160,7 +160,7 @@ const AppContext = createContext<AppState | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [lang, setLangState] = useState<Lang>("kk");
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [progress, setProgress] = useState<StudentProgress>(defaultProgress);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>(defaultAdminSettings);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -180,7 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setThemeState(savedTheme);
         document.documentElement.setAttribute("data-theme", savedTheme);
       } else {
-        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-theme", "light");
       }
       if (savedProgress) setProgress(JSON.parse(savedProgress));
       if (savedAdmin) setAdminSettings(JSON.parse(savedAdmin));

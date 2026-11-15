@@ -6,6 +6,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { AiChatWidget } from "@/components/ui/ai-chat-widget";
+import { SplashScreen } from "@/components/ui/splash-screen";
+import { OnboardingModal } from "@/components/ui/onboarding-modal";
 
 const manrope = Manrope({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
@@ -38,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="kk" className={`${manrope.variable} h-full antialiased`} data-theme="dark">
+    <html lang="kk" className={`${manrope.variable} h-full antialiased`} data-theme="light">
       <body
         className="min-h-full flex flex-col font-sans selection:bg-purple-500/20 selection:text-purple-300"
         style={{
@@ -69,6 +71,12 @@ export default function RootLayout({
 
           {/* AI Marketing Assistant Widget */}
           <AiChatWidget />
+
+          {/* Initial Splash Screen Animation */}
+          <SplashScreen />
+
+          {/* Guided Onboarding for New Students */}
+          <OnboardingModal />
         </AppProvider>
       </body>
     </html>

@@ -26,38 +26,38 @@
   --font-sans: var(--font-manrope);
 }
 
-/* ===== Light Theme ===== */
+/* ===== Light Theme (Royal Blue EdTech Reference Palette) ===== */
 :root {
-  --bg: #F6F7FB;
+  --bg: #F0F4FC;
   --fg: #0f172a;
-  --primary: #5B5BF6;
+  --primary: #1E5BF0;
   --primary-fg: #ffffff;
-  --secondary: #3b82f6;
+  --secondary: #2563EB;
   --secondary-fg: #ffffff;
-  --muted: #eef2f6;
+  --muted: #EBF1FB;
   --muted-fg: #64748b;
-  --accent: #f97316;
+  --accent: #F59E0B;
   --accent-fg: #ffffff;
   --card: #ffffff;
   --card-fg: #0f172a;
-  --card-subtle: #f8fafc;
-  --border-color: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --ring: #5B5BF6;
+  --card-subtle: #F8FAFD;
+  --border-color: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --ring: #1E5BF0;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --sidebar-bg: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --header-bg: rgba(246, 247, 251, 0.9);
-  --gradient-hero: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 50%, #fff7ed 100%);
-  --gradient-primary: linear-gradient(135deg, #5B5BF6 0%, #3b82f6 100%);
-  --gradient-accent: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
-  --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.08);
-  --shadow-xl: 0 20px 35px rgba(15, 23, 42, 0.1);
+  --sidebar-border: #E2E8F0;
+  --header-bg: rgba(255, 255, 255, 0.96);
+  --gradient-hero: linear-gradient(135deg, #EBF2FE 0%, #F5F8FF 50%, #EEF4FF 100%);
+  --gradient-primary: linear-gradient(135deg, #1E5BF0 0%, #2563EB 100%);
+  --gradient-accent: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --gradient-card: linear-gradient(135deg, #ffffff 0%, #F8FAFD 100%);
+  --shadow-sm: 0 1px 3px rgba(30, 91, 240, 0.04);
+  --shadow-md: 0 4px 16px rgba(30, 91, 240, 0.08);
+  --shadow-lg: 0 12px 30px rgba(30, 91, 240, 0.1);
+  --shadow-xl: 0 20px 40px rgba(30, 91, 240, 0.12);
 }
 
 /* ===== Dark Theme (Balanced Slate-Violet Palette - Soft & Eye-Friendly) ===== */

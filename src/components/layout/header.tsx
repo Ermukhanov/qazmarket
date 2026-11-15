@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sun, Moon, Sparkles, User as UserIcon } from "lucide-react";
+import { Sun, Moon, Sparkles, User as UserIcon, GraduationCap } from "lucide-react";
 import { useApp } from "@/store/app-context";
 import { translations } from "@/lib/i18n";
 
@@ -62,8 +62,8 @@ export function Header() {
       {/* Left: Mobile Logo & Desktop Page Title */}
       <div className="flex items-center gap-3 min-w-0">
         <Link href="/" className="md:hidden flex items-center gap-2 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md">
-            QM
+          <div className="w-9 h-9 rounded-xl bg-[#1E5BF0] flex items-center justify-center text-white shadow-md shadow-blue-500/25">
+            <GraduationCap className="w-5 h-5" />
           </div>
         </Link>
 

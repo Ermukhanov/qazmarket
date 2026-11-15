@@ -188,18 +188,18 @@ export function StudentDashboard() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      {/* ===== HERO GREETING (Dark Mode Reference 2) ===== */}
-      <div className="relative rounded-3xl p-6 md:p-8 overflow-hidden border border-[var(--border-color)] bg-gradient-to-r from-purple-900/30 via-indigo-900/20 to-blue-900/20 shadow-lg">
+      {/* ===== HERO GREETING (Modern Royal Blue Card) ===== */}
+      <div className="relative rounded-3xl p-6 md:p-8 overflow-hidden border border-blue-200 dark:border-slate-800 bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-white dark:to-[#161B38] shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+          <div className="space-y-2 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950 text-[#1E5BF0] border border-blue-200 dark:border-blue-900">
               <Sparkles className="w-3.5 h-3.5" />
               <span>«Маркетингтегі қазақ тілі» зертханасы</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[var(--fg)] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               {t.dashboard.greeting}, {user?.name || "Оқушы"}! 👋
             </h1>
-            <p className="text-xs md:text-sm text-[var(--muted-fg)] max-w-xl">
+            <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 max-w-xl font-medium">
               {t.dashboard.welcomeBack}
             </p>
           </div>
@@ -207,7 +207,7 @@ export function StudentDashboard() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/bilim"
-              className="btn btn-primary px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold shadow-md flex items-center gap-2"
+              className="btn btn-primary px-6 py-3 rounded-2xl text-xs md:text-sm font-extrabold shadow-md shadow-blue-500/25 flex items-center gap-2"
             >
               <span>01 модульді бастау</span>
               <ArrowRight className="w-4 h-4" />
