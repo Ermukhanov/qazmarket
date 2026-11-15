@@ -127,8 +127,8 @@ interface AppState {
   saveLessonSubmission: (submission: LessonSubmission) => void;
   unlockBadge: (badgeId: string) => void;
   updateAdminSettings: (settings: Partial<AdminSettings>) => void;
-  login: (email: string, password: string, role?: "student" | "teacher" | "admin") => boolean;
-  register: (name: string, email: string, password: string, role: "student" | "teacher" | "admin", classCode: string) => boolean;
+  login: (email: string, password: string, role?: "student" | "teacher" | "admin") => Promise<boolean>;
+  register: (name: string, email: string, password: string, role: "student" | "teacher" | "admin", classCode: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -426,32 +426,70 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAdminSettings((prev) => ({ ...prev, ...settings }));
   };
 
-  const login = (email: string, _password: string, overrideRole?: "student" | "teacher" | "admin"): boolean => {
-    if (!email) return false;
-    const normalizedEmail = email.trim().toLowerCase();
+  const login = async (email: string, password: string, overrideRole?: "student" | "teacher" | "admin"): Promise<boolean> => {
+    if (!email || !password) return false;
 
-    // Check if user was registered previously in localStorage
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.user) {
+        // Fallback: if Supabase is unreachable, try localStorage legacy
+        console.warn("API login failed, trying localStorage fallback:", data.error);
+        return loginLocalFallback(email, password, overrideRole);
+      }
+
+      const loggedUser: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role || overrideRole || "student",
+        classCode: data.user.classCode || "10A-MARKET",
+        school: data.user.school || "№6 Хромтау гимназиясы",
+        createdAt: data.user.createdAt || new Date().toISOString(),
+      };
+
+      // Load progress from localStorage for this user
+      try {
+        const userProgressStr = localStorage.getItem(`qazmarket_progress_${loggedUser.email}`);
+        if (userProgressStr) {
+          setProgress(JSON.parse(userProgressStr));
+        } else {
+          setProgress(defaultProgress);
+        }
+      } catch (e) {
+        setProgress(defaultProgress);
+      }
+
+      setUser(loggedUser);
+      return true;
+    } catch (e) {
+      console.error("Login network error, using localStorage fallback:", e);
+      return loginLocalFallback(email, password, overrideRole);
+    }
+  };
+
+  // localStorage fallback for offline/dev mode
+  const loginLocalFallback = (email: string, _password: string, overrideRole?: "student" | "teacher" | "admin"): boolean => {
+    const normalizedEmail = email.trim().toLowerCase();
     let savedUsers: Record<string, { name: string; role: "student" | "teacher" | "admin"; classCode: string }> = {};
     try {
       savedUsers = JSON.parse(localStorage.getItem("qazmarket_users_db") || "{}");
     } catch (e) {
       console.error(e);
     }
-
     const existing = savedUsers[normalizedEmail];
     let role: "student" | "teacher" | "admin" = existing?.role || overrideRole || (normalizedEmail.includes("teacher") ? "teacher" : "student");
     let name = existing?.name;
-
     if (!name) {
-      if (normalizedEmail.includes("teacher")) {
-        name = "Сарсенова Ақкүміс Піржанқызы";
-      } else {
-        // Derive clean name from email handle (e.g. "aidar.serik" -> "Айдар Серік")
-        const handle = normalizedEmail.split("@")[0].replace(/[._-]/g, " ");
-        name = handle.charAt(0).toUpperCase() + handle.slice(1);
-      }
+      const handle = normalizedEmail.split("@")[0].replace(/[._-]/g, " ");
+      name = handle.charAt(0).toUpperCase() + handle.slice(1);
     }
-
     const loggedUser: User = {
       id: "usr_" + Date.now(),
       name,
@@ -461,8 +499,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       school: "№6 Хромтау гимназиясы",
       createdAt: new Date().toISOString(),
     };
-
-    // Load their specific progress or clean start
     try {
       const userProgressStr = localStorage.getItem(`qazmarket_progress_${normalizedEmail}`);
       if (userProgressStr) {
@@ -473,12 +509,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       setProgress(defaultProgress);
     }
-
     setUser(loggedUser);
     return true;
   };
 
-  const register = (
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    role: "student" | "teacher" | "admin",
+    classCode: string
+  ): Promise<boolean> => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: normalizedEmail, password, role, classCode }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.user) {
+        console.warn("API register failed, trying localStorage fallback:", data.error);
+        return registerLocalFallback(name, email, password, role, classCode);
+      }
+
+      const newUser: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        classCode: data.user.classCode || (classCode || "10A-MARKET").toUpperCase(),
+        school: data.user.school || "№6 Хромтау гимназиясы",
+        createdAt: data.user.createdAt || new Date().toISOString(),
+      };
+
+      setProgress(defaultProgress);
+      try {
+        localStorage.setItem(`qazmarket_progress_${normalizedEmail}`, JSON.stringify(defaultProgress));
+      } catch (e) {
+        console.error(e);
+      }
+
+      setUser(newUser);
+      return true;
+    } catch (e) {
+      console.error("Register network error, using localStorage fallback:", e);
+      return registerLocalFallback(name, email, password, role, classCode);
+    }
+  };
+
+  // localStorage fallback for offline/dev mode
+  const registerLocalFallback = (
     name: string,
     email: string,
     _password: string,
@@ -495,28 +579,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       school: "№6 Хромтау гимназиясы",
       createdAt: new Date().toISOString(),
     };
-
-    // Save into registered users database in localStorage
     try {
       const savedUsers = JSON.parse(localStorage.getItem("qazmarket_users_db") || "{}");
-      savedUsers[normalizedEmail] = {
-        name: newUser.name,
-        role: newUser.role,
-        classCode: newUser.classCode,
-      };
+      savedUsers[normalizedEmail] = { name: newUser.name, role: newUser.role, classCode: newUser.classCode };
       localStorage.setItem("qazmarket_users_db", JSON.stringify(savedUsers));
     } catch (e) {
       console.error(e);
     }
-
-    // Fresh progress for newly registered user (0 XP)
     setProgress(defaultProgress);
     try {
       localStorage.setItem(`qazmarket_progress_${normalizedEmail}`, JSON.stringify(defaultProgress));
     } catch (e) {
       console.error(e);
     }
-
     setUser(newUser);
     return true;
   };

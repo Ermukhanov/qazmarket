@@ -25,6 +25,8 @@ function LoginForm() {
   const [classCode, setClassCode] = useState<string>("10A-MARKET");
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   useEffect(() => {
     const tabParam = searchParams.get("tab");
     if (tabParam === "register") setMode("register");
@@ -34,28 +36,56 @@ function LoginForm() {
     }
   }, [searchParams]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setIsLoading(true);
 
-    if (mode === "login") {
-      if (!email.trim()) {
-        setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
-        return;
+    try {
+      if (mode === "login") {
+        if (!email.trim()) {
+          setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
+          setIsLoading(false);
+          return;
+        }
+        if (!password.trim()) {
+          setErrorMsg(lang === "ru" ? "Введите пароль" : "Құпия сөзді енгізіңіз");
+          setIsLoading(false);
+          return;
+        }
+        const success = await login(email, password, role);
+        if (success) {
+          router.push(role === "student" ? "/" : "/teacher");
+        } else {
+          setErrorMsg(lang === "ru" ? "Неверный email или пароль" : "Email немесе құпия сөз қате");
+        }
+      } else {
+        if (!name.trim()) {
+          setErrorMsg(lang === "ru" ? "Введите ваше имя" : "Аты-жөніңізді енгізіңіз");
+          setIsLoading(false);
+          return;
+        }
+        if (!email.trim()) {
+          setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
+          setIsLoading(false);
+          return;
+        }
+        if (!password.trim()) {
+          setErrorMsg(lang === "ru" ? "Введите пароль" : "Құпия сөзді енгізіңіз");
+          setIsLoading(false);
+          return;
+        }
+        const success = await register(name, email, password, role, classCode);
+        if (success) {
+          router.push(role === "student" ? "/" : "/teacher");
+        } else {
+          setErrorMsg(lang === "ru" ? "Ошибка регистрации" : "Тіркелу қатесі");
+        }
       }
-      login(email, password || "123456", role);
-      router.push(role === "student" ? "/" : "/teacher");
-    } else {
-      if (!name.trim()) {
-        setErrorMsg(lang === "ru" ? "Введите ваше имя" : "Аты-жөніңізді енгізіңіз");
-        return;
-      }
-      if (!email.trim()) {
-        setErrorMsg(lang === "ru" ? "Введите email" : "Email енгізіңіз");
-        return;
-      }
-      register(name, email, password || "123456", role, classCode);
-      router.push(role === "student" ? "/" : "/teacher");
+    } catch (err) {
+      setErrorMsg(lang === "ru" ? "Ошибка сети" : "Желі қатесі");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -199,14 +229,17 @@ function LoginForm() {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-2xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-95"
+          disabled={isLoading}
+          className="w-full py-3 rounded-2xl bg-[#1E5BF0] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span>
-            {mode === "login"
-              ? (lang === "ru" ? "Войти в систему" : "Платформаға кіру")
-              : (lang === "ru" ? "Зарегистрироваться" : "Тіркелу және бастау")}
+            {isLoading
+              ? (lang === "ru" ? "Загрузка..." : "Жүктелуде...")
+              : mode === "login"
+                ? (lang === "ru" ? "Войти в систему" : "Платформаға кіру")
+                : (lang === "ru" ? "Зарегистрироваться" : "Тіркелу және бастау")}
           </span>
-          <ArrowRight className="w-4 h-4" />
+          {!isLoading && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
     </div>
