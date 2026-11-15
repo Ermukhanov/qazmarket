@@ -60,38 +60,38 @@
   --shadow-xl: 0 20px 35px rgba(15, 23, 42, 0.1);
 }
 
-/* ===== Dark Theme (Rich Deep Violet Palette - Reference 2) ===== */
+/* ===== Dark Theme (Balanced Slate-Violet Palette - Soft & Eye-Friendly) ===== */
 [data-theme="dark"] {
-  --bg: #0F1226;
-  --fg: #f1f5f9;
-  --primary: #5B5BF6;
+  --bg: #13172E;
+  --fg: #F8FAFC;
+  --primary: #6366F1;
   --primary-fg: #ffffff;
-  --secondary: #3b82f6;
+  --secondary: #3B82F6;
   --secondary-fg: #ffffff;
-  --muted: #1e2242;
-  --muted-fg: #94a3b8;
-  --accent: #f97316;
+  --muted: #222852;
+  --muted-fg: #9FB0C8;
+  --accent: #F97316;
   --accent-fg: #ffffff;
-  --card: #171A36;
-  --card-fg: #f8fafc;
-  --card-subtle: #1e2242;
-  --border-color: #262b54;
-  --border-strong: #373e73;
-  --ring: #5B5BF6;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --sidebar-bg: #131633;
-  --sidebar-border: #23274D;
-  --header-bg: rgba(15, 18, 38, 0.9);
-  --gradient-hero: linear-gradient(135deg, #181438 0%, #15224c 50%, #1a153b 100%);
-  --gradient-primary: linear-gradient(135deg, #5B5BF6 0%, #3b82f6 100%);
-  --gradient-accent: linear-gradient(135deg, #f97316 0%, #ec4899 100%);
-  --gradient-card: linear-gradient(135deg, #1c2044 0%, #171A36 100%);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7);
+  --card: #1B2042;
+  --card-fg: #FFFFFF;
+  --card-subtle: #232A56;
+  --border-color: #2D3568;
+  --border-strong: #404B8C;
+  --ring: #6366F1;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --sidebar-bg: #161B38;
+  --sidebar-border: #29305F;
+  --header-bg: rgba(19, 23, 46, 0.92);
+  --gradient-hero: linear-gradient(135deg, #1C1E45 0%, #192758 50%, #1E1F4C 100%);
+  --gradient-primary: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+  --gradient-accent: linear-gradient(135deg, #F97316 0%, #EC4899 100%);
+  --gradient-card: linear-gradient(135deg, #1F254E 0%, #1B2042 100%);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.6);
 }
 
 /* ===== Base Typography & Rules ===== */
@@ -208,8 +208,14 @@ h4 { font-size: 1.15rem; }
 }
 
 /* Form controls */
+input, textarea, select, button {
+  font-family: var(--font-manrope), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 input, textarea, select {
-  font-family: inherit;
   font-size: 1rem;
   background-color: var(--card-subtle);
   color: var(--fg);

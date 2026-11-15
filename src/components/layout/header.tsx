@@ -53,7 +53,7 @@ export function Header() {
 
   return (
     <header
-      className="h-[72px] shrink-0 border-b px-4 md:px-8 flex items-center justify-between transition-colors duration-200 z-30 sticky top-0 backdrop-blur-md"
+      className="h-[68px] md:h-[72px] shrink-0 border-b px-3 sm:px-6 md:px-8 flex items-center justify-between transition-colors duration-200 z-30 sticky top-0 backdrop-blur-md"
       style={{
         background: "var(--header-bg)",
         borderColor: "var(--border-color)",

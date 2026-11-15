@@ -159,9 +159,28 @@ export default function StudioPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[var(--muted-fg)] mb-1.5 uppercase tracking-wider">
-                    {t.studio.sloganInput}
-                  </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                    <label className="block text-xs font-bold text-[var(--muted-fg)] uppercase tracking-wider">
+                      {t.studio.sloganInput}
+                    </label>
+
+                    {/* Quick Kazakh Alphabet Bar */}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span className="text-[10px] text-[var(--muted-fg)] mr-1 font-semibold">Төл әріптер:</span>
+                      {["ә", "і", "ң", "ғ", "ү", "ұ", "қ", "ө", "һ"].map((char) => (
+                        <button
+                          key={char}
+                          type="button"
+                          onClick={() => setSlogan(slogan + char)}
+                          className="w-6 h-6 rounded-md border border-[var(--border-color)] bg-[var(--card)] hover:bg-purple-600 hover:text-white text-xs font-bold text-[var(--fg)] transition-all shadow-xs active:scale-95 flex items-center justify-center"
+                          title={`«${char}» әрпін қосу`}
+                        >
+                          {char}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <textarea
                     rows={3}
                     value={slogan}

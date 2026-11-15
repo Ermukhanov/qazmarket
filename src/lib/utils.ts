@@ -67,13 +67,16 @@ export function calculateLevel(xp: number): {
 }
 
 export function hasKazakhLetters(text: string): boolean {
+  // Kazakh-specific letters: Ә, ә, І, і, Ң, ң, Ғ, ғ, Ү, ү, Ұ, ұ, Қ, қ, Ө, ө, Һ, һ
   const kazSpecific = /[ӘәІіҢңҒғҮүҰұҚқӨөҺһ]/;
   return kazSpecific.test(text);
 }
 
 export function hasOnlyRussianLetters(text: string): boolean {
-  const rusOnly = /^[А-Яа-яЁё\s\d\p{P}]+$/u;
-  return rusOnly.test(text) && !hasKazakhLetters(text);
+  // Specific letters that belong exclusively to the Russian alphabet and NOT native Kazakh phonology:
+  // ё, ъ, ь, э, щ, ц
+  const rusSpecific = /[ЁёЪъЬьЭэЩщЦц]/;
+  return rusSpecific.test(text);
 }
 
 export function checkSloganQuality(text: string, brandName: string): {

@@ -654,11 +654,33 @@ export default function BilimPage() {
                       </div>
                     </div>
 
-                    {/* Student Input Field */}
+                    {/* Student Input Field with Quick Kazakh Letters Helper */}
                     <div className="space-y-2 pt-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
-                        Сіздің жауабыңыз немесе әзірлеген жобаңыз:
-                      </label>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted-fg)]">
+                          Сіздің жауабыңыз немесе әзірлеген жобаңыз:
+                        </label>
+
+                        {/* Quick Kazakh Alphabet Bar */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] text-[var(--muted-fg)] mr-1 font-semibold">Төл әріптер:</span>
+                          {["ә", "і", "ң", "ғ", "ү", "ұ", "қ", "ө", "һ"].map((char) => (
+                            <button
+                              key={char}
+                              type="button"
+                              onClick={() => {
+                                const current = taskAnswers[curTask.id] || "";
+                                setTaskAnswers({ ...taskAnswers, [curTask.id]: current + char });
+                              }}
+                              className="w-6 h-6 rounded-md border border-[var(--border-color)] bg-[var(--card)] hover:bg-purple-600 hover:text-white text-xs font-bold text-[var(--fg)] transition-all shadow-xs active:scale-95 flex items-center justify-center"
+                              title={`«${char}» әрпін қосу`}
+                            >
+                              {char}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <textarea
                         rows={4}
                         placeholder="Осы жерге қазақ тіліндегі тапсырма жауабын, мәтінді немесе жоба тезистерін жазыңыз..."
@@ -666,6 +688,11 @@ export default function BilimPage() {
                         onChange={(e) => setTaskAnswers({ ...taskAnswers, [curTask.id]: e.target.value })}
                         className="w-full text-xs sm:text-sm font-medium leading-relaxed"
                       />
+
+                      <div className="flex items-center justify-between text-[11px] text-[var(--muted-fg)] pt-0.5">
+                        <span>Сөз саны: {(taskAnswers[curTask.id] || "").trim().split(/\s+/).filter(Boolean).length}</span>
+                        <span>{(taskAnswers[curTask.id] || "").length} таңба</span>
+                      </div>
                     </div>
 
                     {/* Submit Action */}

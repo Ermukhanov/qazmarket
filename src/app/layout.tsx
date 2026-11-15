@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { AiChatWidget } from "@/components/ui/ai-chat-widget";
 
 const manrope = Manrope({
-  subsets: ["latin", "cyrillic"],
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-manrope",
   display: "swap",
@@ -56,7 +56,7 @@ export default function RootLayout({
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
               <Header />
               <main
-                className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8 pb-28 md:pb-10 transition-colors duration-200"
+                className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 pb-28 md:pb-10 transition-colors duration-200"
                 id="main-content"
               >
                 {children}
